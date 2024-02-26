@@ -1,0 +1,3 @@
+C:/Users/cyfra/Desktop/School/year_2/semester_4/computer-graphics/ImageViewer_cv2/build/CMakeFiles/ImageViewer.dir
+C:/Users/cyfra/Desktop/School/year_2/semester_4/computer-graphics/ImageViewer_cv2/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/cyfra/Desktop/School/year_2/semester_4/computer-graphics/ImageViewer_cv2/build/CMakeFiles/ZERO_CHECK.dir
