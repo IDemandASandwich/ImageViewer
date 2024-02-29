@@ -328,3 +328,58 @@ void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype
 	}
 	drawLine(points[points.size() - 1], points[0], color, algtype);
 }
+
+void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype) {
+	enum types {line, polygon};
+	double theta = ((double)degrees / (double)180) * M_PI;
+	double cx = object.at(0).x();
+	double cy = object.at(0).y();
+
+	for (qsizetype i = 1; i < object.size(); i++) {
+		double x = cos(theta) * (object.at(i).x() - cx) + sin(theta) * (object.at(i).y() - cy) + cx;
+		double y = -sin(theta) * (object.at(i).x() - cx) + cos(theta) * (object.at(i).y() - cy) + cy;
+
+		QPoint p(x, y);
+		object.replace(i, p);
+	}
+
+	clear();
+
+	switch (type) {
+	case line:
+		drawLine(object.at(0), object.at(1), color, algtype);
+		break;
+	case polygon:
+		drawPolygon(object, color, algtype);
+		break;
+	default:
+		break;
+	}
+}
+
+void ViewerWidget::scaleObject(double multiplier, QColor color, int type, int algtype) {
+	enum types{line, circle, polygon};
+	double cx = object.at(0).x();
+	double cy = object.at(0).y();
+
+	for (qsizetype i = 1; i < object.size(); i++) {
+		QPoint p = (object.at(i) - object.at(0)) * multiplier + object.at(0);
+		object.replace(i, p);
+	}
+
+	clear();
+
+	switch (type) {
+	case line:
+		drawLine(object.at(0), object.at(1), color, algtype);
+		break;
+	case circle:
+		drawCircle(object.at(0), object.at(1), color);
+		break;
+	case polygon:
+		drawPolygon(object, color, algtype);
+		break;
+	default:
+		break;
+	}
+}

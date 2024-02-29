@@ -41,6 +41,7 @@ private:
 
 	//My functions
 	void initializeButtonGroup();
+	void enableButtons(bool state);
 
 private slots:
 	void on_actionOpen_triggered();
@@ -51,4 +52,6 @@ private slots:
 	//Tools slots
 	void on_pushButtonSetColor_clicked();
 	void on_pushButtonClear_clicked();
+	void on_pushButtonRotate_clicked();
+	void on_pushButtonScale_clicked();
 };

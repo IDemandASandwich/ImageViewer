@@ -14,6 +14,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QDockWidget>
+#include <QtWidgets/QDoubleSpinBox>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHBoxLayout>
@@ -23,6 +24,7 @@
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QScrollArea>
 #include <QtWidgets/QSpacerItem>
+#include <QtWidgets/QSpinBox>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
@@ -57,17 +59,21 @@ public:
     QPushButton *pushButtonClear;
     QGroupBox *groupBoxDraw;
     QGridLayout *gridLayout;
+    QComboBox *comboBoxLineAlg;
+    QPushButton *pushButtonScale;
+    QPushButton *pushButtonRotate;
     QToolButton *toolButtonDrawCircle;
     QToolButton *toolButtonDrawLine;
     QToolButton *toolButtonDrawPolygon;
-    QComboBox *comboBoxLineAlg;
+    QSpinBox *spinBoxRotate;
+    QDoubleSpinBox *doubleSpinBoxScale;
     QSpacerItem *verticalSpacer;
 
     void setupUi(QMainWindow *ImageViewerClass)
     {
         if (ImageViewerClass->objectName().isEmpty())
             ImageViewerClass->setObjectName("ImageViewerClass");
-        ImageViewerClass->resize(689, 653);
+        ImageViewerClass->resize(671, 600);
         actionOpen = new QAction(ImageViewerClass);
         actionOpen->setObjectName("actionOpen");
         actionSave_as = new QAction(ImageViewerClass);
@@ -89,7 +95,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName("scrollAreaWidgetContents");
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 481, 578));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 423, 525));
         scrollArea->setWidget(scrollAreaWidgetContents);
 
         horizontalLayout->addWidget(scrollArea);
@@ -97,7 +103,7 @@ public:
         ImageViewerClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(ImageViewerClass);
         menuBar->setObjectName("menuBar");
-        menuBar->setGeometry(QRect(0, 0, 689, 22));
+        menuBar->setGeometry(QRect(0, 0, 671, 22));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName("menuFile");
         menuImage = new QMenu(menuBar);
@@ -142,14 +148,50 @@ public:
         gridLayout->setSpacing(6);
         gridLayout->setContentsMargins(11, 11, 11, 11);
         gridLayout->setObjectName("gridLayout");
+        comboBoxLineAlg = new QComboBox(groupBoxDraw);
+        comboBoxLineAlg->addItem(QString());
+        comboBoxLineAlg->addItem(QString());
+        comboBoxLineAlg->setObjectName("comboBoxLineAlg");
+
+        gridLayout->addWidget(comboBoxLineAlg, 0, 0, 1, 3);
+
+        pushButtonScale = new QPushButton(groupBoxDraw);
+        pushButtonScale->setObjectName("pushButtonScale");
+        QSizePolicy sizePolicy(QSizePolicy::Minimum, QSizePolicy::Ignored);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(pushButtonScale->sizePolicy().hasHeightForWidth());
+        pushButtonScale->setSizePolicy(sizePolicy);
+
+        gridLayout->addWidget(pushButtonScale, 3, 1, 1, 1);
+
+        pushButtonRotate = new QPushButton(groupBoxDraw);
+        pushButtonRotate->setObjectName("pushButtonRotate");
+        QSizePolicy sizePolicy1(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(pushButtonRotate->sizePolicy().hasHeightForWidth());
+        pushButtonRotate->setSizePolicy(sizePolicy1);
+        pushButtonRotate->setMaximumSize(QSize(100, 16777215));
+        pushButtonRotate->setFlat(false);
+
+        gridLayout->addWidget(pushButtonRotate, 2, 1, 1, 1);
+
         toolButtonDrawCircle = new QToolButton(groupBoxDraw);
         toolButtonDrawCircle->setObjectName("toolButtonDrawCircle");
+        QSizePolicy sizePolicy2(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(toolButtonDrawCircle->sizePolicy().hasHeightForWidth());
+        toolButtonDrawCircle->setSizePolicy(sizePolicy2);
         toolButtonDrawCircle->setCheckable(true);
 
         gridLayout->addWidget(toolButtonDrawCircle, 1, 1, 1, 1);
 
         toolButtonDrawLine = new QToolButton(groupBoxDraw);
         toolButtonDrawLine->setObjectName("toolButtonDrawLine");
+        sizePolicy2.setHeightForWidth(toolButtonDrawLine->sizePolicy().hasHeightForWidth());
+        toolButtonDrawLine->setSizePolicy(sizePolicy2);
         toolButtonDrawLine->setCheckable(true);
         toolButtonDrawLine->setAutoRepeatDelay(0);
 
@@ -161,12 +203,21 @@ public:
 
         gridLayout->addWidget(toolButtonDrawPolygon, 1, 2, 1, 1);
 
-        comboBoxLineAlg = new QComboBox(groupBoxDraw);
-        comboBoxLineAlg->addItem(QString());
-        comboBoxLineAlg->addItem(QString());
-        comboBoxLineAlg->setObjectName("comboBoxLineAlg");
+        spinBoxRotate = new QSpinBox(groupBoxDraw);
+        spinBoxRotate->setObjectName("spinBoxRotate");
+        spinBoxRotate->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        spinBoxRotate->setMinimum(-360);
+        spinBoxRotate->setMaximum(360);
 
-        gridLayout->addWidget(comboBoxLineAlg, 0, 0, 1, 3);
+        gridLayout->addWidget(spinBoxRotate, 2, 0, 1, 1);
+
+        doubleSpinBoxScale = new QDoubleSpinBox(groupBoxDraw);
+        doubleSpinBoxScale->setObjectName("doubleSpinBoxScale");
+        doubleSpinBoxScale->setMinimum(0.500000000000000);
+        doubleSpinBoxScale->setMaximum(2.000000000000000);
+        doubleSpinBoxScale->setSingleStep(0.250000000000000);
+
+        gridLayout->addWidget(doubleSpinBoxScale, 3, 0, 1, 1);
 
 
         verticalLayout->addWidget(groupBoxDraw);
@@ -187,6 +238,9 @@ public:
         menuImage->addAction(actionClear);
 
         retranslateUi(ImageViewerClass);
+
+        pushButtonRotate->setDefault(false);
+
 
         QMetaObject::connectSlotsByName(ImageViewerClass);
     } // setupUi
@@ -215,12 +269,14 @@ public:
         pushButtonSetColor->setText(QString());
         pushButtonClear->setText(QCoreApplication::translate("ImageViewerClass", "Clear", nullptr));
         groupBoxDraw->setTitle(QCoreApplication::translate("ImageViewerClass", "Draw", nullptr));
-        toolButtonDrawCircle->setText(QCoreApplication::translate("ImageViewerClass", "Circle", nullptr));
-        toolButtonDrawLine->setText(QCoreApplication::translate("ImageViewerClass", "Line", nullptr));
-        toolButtonDrawPolygon->setText(QCoreApplication::translate("ImageViewerClass", "Polygon", nullptr));
         comboBoxLineAlg->setItemText(0, QCoreApplication::translate("ImageViewerClass", "DDA", nullptr));
         comboBoxLineAlg->setItemText(1, QCoreApplication::translate("ImageViewerClass", "Bresenham", nullptr));
 
+        pushButtonScale->setText(QCoreApplication::translate("ImageViewerClass", "Scale", nullptr));
+        pushButtonRotate->setText(QCoreApplication::translate("ImageViewerClass", "Rotate", nullptr));
+        toolButtonDrawCircle->setText(QCoreApplication::translate("ImageViewerClass", "Circle", nullptr));
+        toolButtonDrawLine->setText(QCoreApplication::translate("ImageViewerClass", "Line", nullptr));
+        toolButtonDrawPolygon->setText(QCoreApplication::translate("ImageViewerClass", "Polygon", nullptr));
     } // retranslateUi
 
 };

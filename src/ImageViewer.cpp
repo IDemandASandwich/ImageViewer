@@ -69,43 +69,41 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 		if (e->button() == Qt::LeftButton && ui->toolButtonDrawLine->isChecked())
 		{
 			if (w->getDrawLineActivated()) {
+				w->addObjectPoint(e->pos());
 				w->drawLine(w->getDrawLineBegin(), e->pos(), globalColor, ui->comboBoxLineAlg->currentIndex());
 				w->setDrawLineActivated(false);
 				
-				w->addObjectPoint(e->pos());
-				ui->groupBoxDraw->setEnabled(false);
+				enableButtons(false);
 				w->setMoveActive(true);
 			}
 			else {
+				w->addObjectPoint(e->pos());
 				w->setDrawLineBegin(e->pos());
 				w->setDrawLineActivated(true);
 				w->setPixel(e->pos().x(), e->pos().y(), globalColor);
 				w->update();
-
-				w->addObjectPoint(e->pos());
 			}
 		}
 		else if (e->button() == Qt::LeftButton && ui->toolButtonDrawCircle->isChecked()) {
 			if (w->getDrawLineActivated()) {
+				w->addObjectPoint(e->pos());
 				w->drawCircle(w->getDrawLineBegin(), e->pos(), globalColor);
 				w->setDrawLineActivated(false);
 
-				w->addObjectPoint(e->pos());
-				ui->groupBoxDraw->setEnabled(false);
+				enableButtons(false);
 				w->setMoveActive(true);
 			}
 			else {
+				w->addObjectPoint(e->pos());
 				w->setDrawLineBegin(e->pos());
 				w->setDrawLineActivated(true);
 				w->update();
-
-				w->addObjectPoint(e->pos());
 			}
 		}
 		else if (e->button() == Qt::LeftButton && ui->toolButtonDrawPolygon->isChecked()) {
-			w->setDrawPolygonActivated(true);
-			ui->groupBoxDraw->setEnabled(false);
 			w->addObjectPoint(e->pos());
+			w->setDrawPolygonActivated(true);
+			enableButtons(false);
 			w->setPixel(e->pos().x(), e->pos().y(), globalColor);
 			w->update();
 		}
@@ -127,8 +125,15 @@ void ImageViewer::ViewerWidgetMouseButtonRelease(ViewerWidget* w, QEvent* event)
 {
 	QMouseEvent* e = static_cast<QMouseEvent*>(event);
 	
-	if (e->button() == Qt::LeftButton && w->getMoveActive()) {
+	if (e->button() == Qt::LeftButton && w->getMoving()) {
 		w->setMoving(false);
+
+		QPoint move = e->pos() - w->getOrigin();
+		
+		for (int i = 0; i < w->objectSize(); i++) {
+			QPoint point = w->getObjectPoint(i);
+			w->changeObjectPoint(i, point + move);
+		}
 	}
 }
 void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
@@ -140,6 +145,22 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 			QPoint move = e->pos() - w->getOrigin();
 			w->clear();
 			w->drawLine(w->getObject().at(0) + move, w->getObject().at(1) + move, globalColor, ui->comboBoxLineAlg->currentIndex());
+		}
+		else if (ui->toolButtonDrawCircle->isChecked()) {
+			QPoint move = e->pos() - w->getOrigin();
+			w->clear();
+			w->drawCircle(w->getObject().at(0) + move, w->getObject().at(1) + move, globalColor);
+		}
+		else if (ui->toolButtonDrawPolygon->isChecked()) {
+			QPoint move = e->pos() - w->getOrigin();
+			QVector<QPoint> temp = w->getObject();
+
+			for (int i = 0; i < temp.size(); i++) {
+				temp[i] += move;
+			}
+
+			w->clear();
+			w->drawPolygon(temp, globalColor, ui->comboBoxLineAlg->currentIndex());
 		}
 	}
 }
@@ -226,9 +247,9 @@ void ImageViewer::on_actionSave_as_triggered()
 void ImageViewer::on_actionClear_triggered()
 {
 	vW->clear();
-	vW->clearPoints();
+	vW->clearObjectPoints();
 	vW->setMoveActive(false);
-	ui->groupBoxDraw->setEnabled(true);
+	enableButtons(true);
 }
 void ImageViewer::on_actionExit_triggered()
 {
@@ -248,9 +269,9 @@ void ImageViewer::on_pushButtonSetColor_clicked()
 void ImageViewer::on_pushButtonClear_clicked()
 {
 	vW->clear();
-	vW->clearPoints();
+	vW->clearObjectPoints();
 	vW->setMoveActive(false);
-	ui->groupBoxDraw->setEnabled(true);
+	enableButtons(true);
 }
 
 void ImageViewer::initializeButtonGroup()
@@ -264,4 +285,38 @@ void ImageViewer::initializeButtonGroup()
 	connect(ui->toolButtonDrawCircle, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setEnabled(false);	});
 	connect(ui->toolButtonDrawLine, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setEnabled(true);	});
 	connect(ui->toolButtonDrawPolygon, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setEnabled(true);	});
+}
+
+void ImageViewer::enableButtons(bool state) {
+	ui->comboBoxLineAlg->setEnabled(state);
+	ui->pushButtonSetColor->setEnabled(state);
+	ui->toolButtonDrawCircle->setEnabled(state);
+	ui->toolButtonDrawLine->setEnabled(state);
+	ui->toolButtonDrawPolygon->setEnabled(state);
+}
+
+void ImageViewer::on_pushButtonRotate_clicked() {
+	enum types { line, polygon };
+	int type = 0;
+
+	if (ui->toolButtonDrawLine->isChecked())
+		type = line;
+	else if (ui->toolButtonDrawPolygon->isChecked())
+		type = polygon;
+
+	vW->rotateObject(ui->spinBoxRotate->value(), type, globalColor, ui->comboBoxLineAlg->currentIndex());
+}
+
+void ImageViewer::on_pushButtonScale_clicked() {
+	enum types { line, circle, polygon };
+	int type = 0;
+
+	if (ui->toolButtonDrawLine->isChecked())
+		type = line;
+	else if (ui->toolButtonDrawCircle->isChecked())
+		type = circle;
+	else if (ui->toolButtonDrawPolygon->isChecked())
+		type = polygon;
+
+	vW->scaleObject(ui->doubleSpinBoxScale->value(), globalColor, type, ui->comboBoxLineAlg->currentIndex());
 }

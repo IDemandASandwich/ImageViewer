@@ -53,10 +53,13 @@ public:
 	int getImgWidth() { return img->width(); };
 	int getImgHeight() { return img->height(); };
 
+	void clear();
+
+	//my get/set functions
 	void addObjectPoint(QPoint point) { object.push_back(point); }
 	void addObjectPoint(int x, int y) { object.push_back(QPoint(x, y)); }
 	void debugObjectPoints(){ for (int i = 0; i < object.size(); i++) { qDebug() << object[i]; }  }
-	void clearPoints() { object.clear(); }
+	void clearObjectPoints() { object.clear(); }
 	QVector<QPoint> getObject() { return object; }
 	int objectSize() { return object.size(); }
 	QPoint getObjectPoint(int index) { return object.at(index); }
@@ -69,13 +72,13 @@ public:
 	void setOrigin(QPoint point) { origin = point; }
 	QPoint getOrigin() { return origin; }
 
-	void clear();
-
 	//My functions
 	void DDA(QPoint start, QPoint end, QColor color);
 	void Bresenham(QPoint start, QPoint end, QColor color);
 	void drawCircle(QPoint center, QPoint end, QColor color);
 	void drawPolygon(QVector<QPoint> points, QColor color, int algtype = 0);
+	void rotateObject(int degrees, int type, QColor color, int algtype);
+	void scaleObject(double multiplier, QColor color, int type,int algtype);
 
 public slots:
 	void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
