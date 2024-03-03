@@ -77,8 +77,12 @@ public:
 	void Bresenham(QPoint start, QPoint end, QColor color);
 	void drawCircle(QPoint center, QPoint end, QColor color);
 	void drawPolygon(QVector<QPoint> points, QColor color, int algtype = 0);
-	void rotateObject(int degrees, int type, QColor color, int algtype);
-	void scaleObject(double multiplier, QColor color, int type,int algtype);
+	void drawType(QColor color, int type, int algtype = 0);
+
+	void rotateObject(int degrees, int type, QColor color, int algtype = 0);
+	void scaleObject(double multiplier, QColor color, int type, int algtype = 0);
+	void scaleObject(double multiplierX, double multiplierY, QColor color, int type,int algtype = 0);
+	void mirrorObject(int type, QColor color, int algtype = 0);
 
 public slots:
 	void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;

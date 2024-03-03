@@ -330,7 +330,6 @@ void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype
 }
 
 void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype) {
-	enum types {line, polygon};
 	double theta = ((double)degrees / (double)180) * M_PI;
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
@@ -343,22 +342,10 @@ void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype
 		object.replace(i, p);
 	}
 
-	clear();
-
-	switch (type) {
-	case line:
-		drawLine(object.at(0), object.at(1), color, algtype);
-		break;
-	case polygon:
-		drawPolygon(object, color, algtype);
-		break;
-	default:
-		break;
-	}
+	drawType(color, type, algtype);
 }
 
 void ViewerWidget::scaleObject(double multiplier, QColor color, int type, int algtype) {
-	enum types{line, circle, polygon};
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
 
@@ -366,6 +353,46 @@ void ViewerWidget::scaleObject(double multiplier, QColor color, int type, int al
 		QPoint p = (object.at(i) - object.at(0)) * multiplier + object.at(0);
 		object.replace(i, p);
 	}
+
+	drawType(color, type, algtype);
+}
+
+void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor color, int type, int algtype) {
+	enum types { line, circle, polygon };
+	double cx = object.at(0).x();
+	double cy = object.at(0).y();
+
+	for (qsizetype i = 1; i < object.size(); i++) {
+		double x = (object.at(i).x() - cx) * multiplierX + cx;
+		double y = (object.at(i).y() - cy) * multiplierY + cy;
+		QPoint p(x, y);
+		object.replace(i, p);
+	}
+
+	drawType(color, type, algtype);
+}
+
+void ViewerWidget::mirrorObject(int type, QColor color, int algtype) {
+	enum types {line=0, polygon=2};
+
+	QPoint n(object.at(1).y() - object.at(0).y(), object.at(0).x() - object.at(1).x());
+	double a = object.at(1).y() - object.at(0).y();
+	double b = object.at(0).x() - object.at(1).x();
+	double c = -a * object.at(0).x() - b * object.at(0).y();
+
+	for (qsizetype i = 1; i < object.size(); i++) {
+		double x = object.at(i).x();
+		double y = object.at(i).y();
+		double d = (a * x + b * y + c) / (pow(a, 2) + pow(b, 2));
+
+		object.replace(i, QPoint(x - 2 * a * d, y - 2 * b * d));
+	}
+
+	drawType(color, type, algtype);
+}
+
+void ViewerWidget::drawType(QColor color, int type ,int algtype) {
+	enum types {line, circle, polygon};
 
 	clear();
 

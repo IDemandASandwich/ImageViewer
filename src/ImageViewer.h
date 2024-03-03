@@ -54,4 +54,5 @@ private slots:
 	void on_pushButtonClear_clicked();
 	void on_pushButtonRotate_clicked();
 	void on_pushButtonScale_clicked();
+	void on_pushButtonMirror_clicked();
 };

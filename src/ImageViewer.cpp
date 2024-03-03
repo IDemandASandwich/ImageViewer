@@ -173,6 +173,27 @@ void ImageViewer::ViewerWidgetEnter(ViewerWidget* w, QEvent* event)
 void ImageViewer::ViewerWidgetWheel(ViewerWidget* w, QEvent* event)
 {
 	QWheelEvent* wheelEvent = static_cast<QWheelEvent*>(event);
+	enum types { line, circle, polygon };
+
+	if (vW->getMoveActive()) {
+		double multiplier = 0;
+		int type = 0;
+
+		if (ui->toolButtonDrawLine->isChecked())
+			type = line;
+		else if (ui->toolButtonDrawCircle->isChecked())
+			type = circle;
+		else if (ui->toolButtonDrawPolygon->isChecked())
+			type = polygon;
+
+		if (wheelEvent->angleDelta().y() > 0)
+			multiplier = 1.25;
+		else
+			multiplier = 0.75;
+
+		vW->scaleObject(multiplier, globalColor, type, ui->comboBoxLineAlg->currentIndex());
+	}
+		
 }
 
 //ImageViewer Events
@@ -296,7 +317,7 @@ void ImageViewer::enableButtons(bool state) {
 }
 
 void ImageViewer::on_pushButtonRotate_clicked() {
-	enum types { line, polygon };
+	enum types { line = 0, polygon = 2};
 	int type = 0;
 
 	if (ui->toolButtonDrawLine->isChecked())
@@ -318,5 +339,19 @@ void ImageViewer::on_pushButtonScale_clicked() {
 	else if (ui->toolButtonDrawPolygon->isChecked())
 		type = polygon;
 
-	vW->scaleObject(ui->doubleSpinBoxScale->value(), globalColor, type, ui->comboBoxLineAlg->currentIndex());
+	vW->scaleObject(ui->doubleSpinBoxScaleX->value(), ui->doubleSpinBoxScaleY->value(),globalColor, type, ui->comboBoxLineAlg->currentIndex());
+}
+
+void ImageViewer::on_pushButtonMirror_clicked() {
+	enum types { line, circle, polygon };
+	int type = 0;
+
+	if (ui->toolButtonDrawLine->isChecked())
+		type = line;
+	else if (ui->toolButtonDrawCircle->isChecked())
+		type = circle;
+	else if (ui->toolButtonDrawPolygon->isChecked())
+		type = polygon;
+
+	vW->mirrorObject(type, globalColor, ui->comboBoxLineAlg->currentIndex());
 }
