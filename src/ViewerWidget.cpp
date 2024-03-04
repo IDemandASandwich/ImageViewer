@@ -120,6 +120,13 @@ void ViewerWidget::setPixel(int x, int y, const QColor& color)
 //Draw functions
 void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType)
 {
+	QVector<QPoint> cropped = cropCB(start, end);
+	
+	if (cropped.isEmpty() == false) {
+		start = cropped.at(0);
+		end = cropped.at(1);
+	}
+
 	switch (algType) {
 	case 0:
 		DDA(start, end, color);
@@ -319,8 +326,10 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 }
 
 void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype) {
-	if (points.size() < 3) {
-		return;
+	QVector<QPoint> cropped = cropSH(points);
+
+	if (cropped.isEmpty() == false) {
+		points = cropped;
 	}
 
 	for (int i = 0; i < points.size() - 1; i++) {
@@ -409,4 +418,101 @@ void ViewerWidget::drawType(QColor color, int type ,int algtype) {
 	default:
 		break;
 	}
+}
+
+void ViewerWidget::shearObjectDx(int type, QColor color, double dx, int algtype) {
+	for (qsizetype i = 1; i < object.size(); i++) {
+		object.replace(i, QPoint(object.at(i).x() + dx * object.at(i).y(), object.at(i).y()));
+	}
+	
+	drawType(color, type, algtype);
+}
+
+QVector<QPoint> ViewerWidget::cropCB(QPoint start, QPoint end) {
+	if (isInside(start) && isInside(end)) { return QVector<QPoint>(); }
+
+	double tl = 0, tu = 1;
+	QVector2D d(end.x() - start.x(), end.y() - start.y());
+	QList<QPoint> E = { QPoint(0,0), QPoint(0,img->height()), QPoint(img->width(),img->height()), QPoint(img->width(),0) };
+	QPoint p0, p1;
+
+	for (qsizetype i = 0; i < E.size(); i++) {
+		QPoint Ei = E.at(i);
+		QPoint En = E.at((i + 1) % E.size());
+		QVector2D n(En.y() - Ei.y(), Ei.x() - En.x());
+		QVector2D origin(img->width() / 2, img->height() / 2);
+		QVector2D w(start.x() - Ei.x(), start.y() - Ei.y());
+		
+		double dn = QVector2D::dotProduct(d, n);
+		double wn = QVector2D::dotProduct(w, n);
+
+		if (dn != 0) {
+			double t = -(wn / dn);
+			if (dn > 0 && t <= 1) {
+				tl = std::max(t, tl);
+			}
+			else if (dn < 0 && t >= 0) {
+				tu = std::min(t, tu);
+			}
+		}
+	}
+
+	if (tl == 0 && tu == 1) { 
+		return QVector<QPoint>();
+	}
+	else if (tl < tu) {
+		p0 = start + (end - start) * tl;
+		p1 = start + (end - start) * tu;
+	}
+
+	QVector<QPoint> cropped = { p0, p1 };
+
+	return cropped;
+}
+
+QVector<QPoint> ViewerWidget::cropSH(QVector<QPoint> V) {
+	QVector<QPoint> W;
+	QVector<QPoint> Vtemp = V;
+
+	double x[4] = { 0, 0, -(img->width() - 1), -(img->height() - 1) };
+
+	for (int i = 0; i < 4; i++) {
+		QPoint S = Vtemp.last();
+		double xmin = x[i];
+
+		for (int j = 0; j < Vtemp.size(); j++) {
+			QPoint P = Vtemp.at(j);
+			if (P.x() >= xmin) {
+				if (S.x() >= xmin) {
+					// Both points are inside or on the boundary
+					W.append(P);
+				}
+				else {
+					// P is inside, S is outside
+					double t = (xmin - S.x()) / (P.x() - S.x());
+					QPoint Pi(xmin, S.y() + t * (P.y() - S.y()));
+					W.append(Pi);
+					W.append(P);
+				}
+			}
+			else {
+				if (S.x() >= xmin) {
+					// P is outside, S is inside or on the boundary
+					double t = (xmin - S.x()) / (P.x() - S.x());
+					QPoint Pi(xmin, S.y() + t * (P.y() - S.y()));
+					W.append(Pi);
+				}
+			}
+			S = P;
+		}
+
+		Vtemp = W;
+
+		for (QPoint& p : Vtemp) {
+			p = QPoint(p.y(), -p.x());
+		}
+		W.clear();
+	}
+
+	return Vtemp;
 }

@@ -34,6 +34,7 @@ public:
 	void setPixel(int x, int y, double valR, double valG, double valB, double valA = 1.);
 	void setPixel(int x, int y, const QColor& color);
 	bool isInside(int x, int y) { return (x >= 0 && y >= 0 && x < img->width() && y < img->height()) ? true : false; }
+	bool isInside(QPoint p) { return (p.x() >= 0 && p.y() >= 0 && p.x() < img->width() && p.y() < img->height()) ? true : false; }
 
 	//Draw functions
 	void drawLine(QPoint start, QPoint end, QColor color, int algType = 0);
@@ -83,6 +84,9 @@ public:
 	void scaleObject(double multiplier, QColor color, int type, int algtype = 0);
 	void scaleObject(double multiplierX, double multiplierY, QColor color, int type,int algtype = 0);
 	void mirrorObject(int type, QColor color, int algtype = 0);
+	void shearObjectDx(int type, QColor color, double dx, int algtype = 0);
+	QVector<QPoint> cropCB(QPoint start, QPoint end);
+	QVector<QPoint> cropSH(QVector<QPoint> V);
 
 public slots:
 	void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;

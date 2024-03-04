@@ -310,7 +310,6 @@ void ImageViewer::initializeButtonGroup()
 
 void ImageViewer::enableButtons(bool state) {
 	ui->comboBoxLineAlg->setEnabled(state);
-	ui->pushButtonSetColor->setEnabled(state);
 	ui->toolButtonDrawCircle->setEnabled(state);
 	ui->toolButtonDrawLine->setEnabled(state);
 	ui->toolButtonDrawPolygon->setEnabled(state);
@@ -354,4 +353,18 @@ void ImageViewer::on_pushButtonMirror_clicked() {
 		type = polygon;
 
 	vW->mirrorObject(type, globalColor, ui->comboBoxLineAlg->currentIndex());
+}
+
+void ImageViewer::on_pushButtonShear_clicked() {
+	enum types { line, circle, polygon };
+	int type = 0;
+
+	if (ui->toolButtonDrawLine->isChecked())
+		type = line;
+	else if (ui->toolButtonDrawCircle->isChecked())
+		type = circle;
+	else if (ui->toolButtonDrawPolygon->isChecked())
+		type = polygon;
+
+	vW->shearObjectDx(type, globalColor, ui->doubleSpinBoxScaleX->value(), ui->comboBoxLineAlg->currentIndex());
 }
