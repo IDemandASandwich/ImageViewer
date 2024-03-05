@@ -88,6 +88,8 @@ public:
 	QVector<QPoint> cropCB(QPoint start, QPoint end);
 	QVector<QPoint> cropSH(QVector<QPoint> V);
 
+	void scanLine(QVector<QPoint> obj,QColor color);
+
 public slots:
 	void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
 };

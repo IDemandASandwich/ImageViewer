@@ -336,6 +336,8 @@ void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype
 		drawLine(points[i], points[i + 1], color, algtype);
 	}
 	drawLine(points[points.size() - 1], points[0], color, algtype);
+
+	scanLine(cropped ,color);
 }
 
 void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype) {
@@ -515,4 +517,40 @@ QVector<QPoint> ViewerWidget::cropSH(QVector<QPoint> V) {
 	}
 
 	return Vtemp;
+}
+
+void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
+	struct edge{
+		QPoint start;
+		QPoint end;
+		edge(QPoint s, QPoint e) :start(s), end(e) {};
+	};
+	QVector<edge> E;
+	QVector<double> m;
+
+	//setup edges
+	for (qsizetype i = 0; i < obj.size(); i++) {
+		QPoint p1 = obj.at(i);
+		QPoint p2 = obj.at((i + 1) % obj.size());
+
+		if (p1.y() > p2.y()) {
+			std::swap(p1, p2);
+		}
+		
+		E.append(edge(p1, p2));
+	}
+	std::sort(E.begin(), E.end(), [](const edge& a, const edge& b) { return a.start.y() < b.start.y(); });
+	
+	for (const auto& e : E) {
+		double slope;
+		if (e.end.x() != e.start.x()) {
+			slope = static_cast<double>(e.end.y() - e.start.y()) / (e.end.x() - e.start.x());
+		}
+		else {
+			slope = -DBL_MAX;
+		}
+		m.push_back(slope);
+	}
+
+	qDebug() << m;
 }
