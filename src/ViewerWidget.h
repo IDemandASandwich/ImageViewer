@@ -33,8 +33,8 @@ public:
 	void setPixel(int x, int y, uchar r, uchar g, uchar b, uchar a = 255);
 	void setPixel(int x, int y, double valR, double valG, double valB, double valA = 1.);
 	void setPixel(int x, int y, const QColor& color);
-	bool isInside(int x, int y) { return (x >= 0 && y >= 0 && x < img->width() && y < img->height()) ? true : false; }
-	bool isInside(QPoint p) { return (p.x() >= 0 && p.y() >= 0 && p.x() < img->width() && p.y() < img->height()) ? true : false; }
+	bool isInside(int x, int y) { return (x > 0 && y > 0 && x < (img->width() - 1) && y < (img->height()) - 1) ? true : false; }
+	bool isInside(QPoint p) { return (p.x() > 0 && p.y() > 0 && p.x() < (img->width()-1) && p.y() < (img->height())-1) ? true : false; }
 
 	//Draw functions
 	void drawLine(QPoint start, QPoint end, QColor color, int algType = 0);

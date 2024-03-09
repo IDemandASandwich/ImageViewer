@@ -123,8 +123,13 @@ void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType)
 	QVector<QPoint> cropped = cropCB(start, end);
 	
 	if (cropped.isEmpty() == false) {
-		start = cropped.at(0);
-		end = cropped.at(1);
+		if (cropped.at(0) == QPoint(-1, -1)) {
+			return;
+		}
+		else {
+			start = cropped.at(0);
+			end = cropped.at(1);
+		}
 	}
 
 	switch (algType) {
@@ -135,8 +140,6 @@ void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType)
 		Bresenham(start, end, color);
 		break;
 	}
-
-	update();
 }
 
 void ViewerWidget::drawCircle(QPoint center, QPoint end, QColor color) {
@@ -223,6 +226,8 @@ void ViewerWidget::DDA(QPoint start, QPoint end, QColor color) {
 			x += 1 / m;
 		}
 	}
+
+	update();
 }
 
 void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
@@ -323,13 +328,21 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 			}
 		}
 	}
+
+	update();
 }
 
-void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype) {
+void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype) 
+{
 	QVector<QPoint> cropped = cropSH(points);
 
 	if (cropped.isEmpty() == false) {
-		points = cropped;
+		if (cropped.at(0) == QPoint(-1, -1)) {
+			return;
+		}
+		else {
+			points = cropped;
+		}
 	}
 
 	for (int i = 0; i < points.size() - 1; i++) {
@@ -337,7 +350,7 @@ void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype
 	}
 	drawLine(points[points.size() - 1], points[0], color, algtype);
 
-	scanLine(cropped ,color);
+	scanLine(points ,color);
 }
 
 void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype) {
@@ -432,6 +445,7 @@ void ViewerWidget::shearObjectDx(int type, QColor color, double dx, int algtype)
 
 QVector<QPoint> ViewerWidget::cropCB(QPoint start, QPoint end) {
 	if (isInside(start) && isInside(end)) { return QVector<QPoint>(); }
+	else if (isInside(start) == false && isInside(end) == false) { return QVector<QPoint>({ QPoint(-1,-1) }); }
 
 	double tl = 0, tu = 1;
 	QVector2D d(end.x() - start.x(), end.y() - start.y());
@@ -473,6 +487,12 @@ QVector<QPoint> ViewerWidget::cropCB(QPoint start, QPoint end) {
 }
 
 QVector<QPoint> ViewerWidget::cropSH(QVector<QPoint> V) {
+	//if all points are in, return empty. If no are in return (-1,-1) for handling
+	int n = 0;
+	for (auto v : V) { if (isInside(v)) { n++; } }
+	if (n == 0) { return QVector<QPoint>({ QPoint(-1,-1) }); }
+	if (n == V.size()) { return QVector<QPoint>(); }
+	
 	QVector<QPoint> W;
 	QVector<QPoint> Vtemp = V;
 
@@ -523,34 +543,90 @@ void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
 	struct edge{
 		QPoint start;
 		QPoint end;
-		edge(QPoint s, QPoint e) :start(s), end(e) {};
+		double m;
+		edge():m(0) {};
+		edge(QPoint s, QPoint e, double m = 0) :start(s), end(e), m(m) {};
 	};
+
+	struct info {
+		int dy;
+		double x;
+		double w;
+		info() { dy = 0; x = 0; w = 0; };
+		info(int dy, double x, double w) :dy(dy), x(x), w(w) {};
+	};
+
 	QVector<edge> E;
-	QVector<double> m;
 
-	//setup edges
+	//setup edges 
+	//there's probbably an issue regarding rearranging the points
 	for (qsizetype i = 0; i < obj.size(); i++) {
-		QPoint p1 = obj.at(i);
-		QPoint p2 = obj.at((i + 1) % obj.size());
+		QPoint p1 = obj[i];
+		QPoint p2 = obj[(i + 1) % obj.size()];
 
-		if (p1.y() > p2.y()) {
+		if (p1.y() >= p2.y()) {
 			std::swap(p1, p2);
 		}
 		
 		E.append(edge(p1, p2));
 	}
-	std::sort(E.begin(), E.end(), [](const edge& a, const edge& b) { return a.start.y() < b.start.y(); });
 	
-	for (const auto& e : E) {
+	for (edge& e : E) {
 		double slope;
 		if (e.end.x() != e.start.x()) {
-			slope = static_cast<double>(e.end.y() - e.start.y()) / (e.end.x() - e.start.x());
+			slope = static_cast<double>(e.end.y() - e.start.y()) / static_cast<double>(e.end.x() - e.start.x());
 		}
 		else {
 			slope = -DBL_MAX;
 		}
-		m.push_back(slope);
+		e.m = slope;
+
+		e.end.setY(e.end.y() - 1);
 	}
 
-	qDebug() << m;
+	std::sort(E.begin(), E.end(), [](const edge& a, const edge& b) { return a.start.y() < b.start.y(); });
+	//end setup edges
+
+	int ymin = E.first().start.y();
+	int ymax = E.last().end.y();
+
+	QVector<QList<info>> TH;
+	TH.resize(ymax - ymin);
+
+	for (int i = 0; i < ymax - ymin; i++) {
+		for (const edge& e : E) {
+			if (i == (e.start.y() - ymin)) {
+				TH[i].append(info(ymax - ymin, static_cast<double>(e.start.x()), 1. / e.m));
+			}
+		}
+	}
+
+	QList<info> ZAH;
+	int y = ymin;
+
+	for (qsizetype i = 0; i < TH.size(); i++) {
+		if (TH.at(i).isEmpty() == false) {
+			ZAH.append(TH.at(i));
+			std::sort(ZAH.begin(), ZAH.end(), [](const info& a, const info& b) {return a.x < b.x; });
+		}
+
+		for (qsizetype j = 0; j < ZAH.size() - 1; j++) {
+			if (ZAH.at(j).x != ZAH.at(j + 1).x) {
+				drawLine(QPoint(static_cast<int>(round(ZAH.at(j).x)), y), QPoint(static_cast<int>(round(ZAH.at(j + 1).x)), y), color, 0);
+			}
+		}
+
+		for (qsizetype j = ZAH.size() - 1; j >= 0; --j) {
+			if (ZAH.at(j).dy == 0) {
+				ZAH.removeAt(j);
+			}
+		}
+
+		for (qsizetype j = 0; j < ZAH.size(); j++) {
+			ZAH[j].dy -= 1;
+			ZAH[j].x += ZAH[j].w;
+		}
+
+		y++;
+	}
 }
