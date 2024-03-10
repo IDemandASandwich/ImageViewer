@@ -547,7 +547,6 @@ void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
 		edge():m(0) {};
 		edge(QPoint s, QPoint e, double m = 0) :start(s), end(e), m(m) {};
 	};
-
 	struct info {
 		int dy;
 		double x;
@@ -555,33 +554,28 @@ void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
 		info() { dy = 0; x = 0; w = 0; };
 		info(int dy, double x, double w) :dy(dy), x(x), w(w) {};
 	};
-
 	QVector<edge> E;
 
 	//setup edges 
-	//there's probbably an issue regarding rearranging the points
 	for (qsizetype i = 0; i < obj.size(); i++) {
 		QPoint p1 = obj[i];
 		QPoint p2 = obj[(i + 1) % obj.size()];
+		double slope;
 
 		if (p1.y() >= p2.y()) {
 			std::swap(p1, p2);
 		}
-		
-		E.append(edge(p1, p2));
-	}
-	
-	for (edge& e : E) {
-		double slope;
-		if (e.end.x() != e.start.x()) {
-			slope = static_cast<double>(e.end.y() - e.start.y()) / static_cast<double>(e.end.x() - e.start.x());
+
+		if (p1.x() != p2.x()) {
+			slope = static_cast<double>(p2.y() - p1.y()) / static_cast<double>(p2.x() - p1.x());
 		}
 		else {
 			slope = -DBL_MAX;
 		}
-		e.m = slope;
 
-		e.end.setY(e.end.y() - 1);
+		if (slope != 0) {
+			E.append(edge(p1, p2, slope));
+		}
 	}
 
 	std::sort(E.begin(), E.end(), [](const edge& a, const edge& b) { return a.start.y() < b.start.y(); });
@@ -590,13 +584,21 @@ void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
 	int ymin = E.first().start.y();
 	int ymax = E.last().end.y();
 
+	/*int ymax = 0;
+
+	for (const auto& e : E) {
+		ymax = std::max(ymax, e.end.y());
+	}*/
+
 	QVector<QList<info>> TH;
 	TH.resize(ymax - ymin);
 
 	for (int i = 0; i < ymax - ymin; i++) {
 		for (const edge& e : E) {
+			
+
 			if (i == (e.start.y() - ymin)) {
-				TH[i].append(info(ymax - ymin, static_cast<double>(e.start.x()), 1. / e.m));
+				TH[i].append(info(e.end.y() - e.start.y(), static_cast<double>(e.start.x()), 1. / e.m));
 			}
 		}
 	}
