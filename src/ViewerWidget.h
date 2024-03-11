@@ -14,10 +14,13 @@ private:
 	bool drawPolygonActivated = false;
 	bool moveActive = false;
 	bool moving = false;
+	bool showpoints = true;	//TODO: add on/off switch
 
 	//My vars
 	QPoint origin;
 	QVector<QPoint> object;
+
+	enum types { line, circle, polygon };
 
 public:
 	ViewerWidget(QSize imgSize, QWidget* parent = Q_NULLPTR);
@@ -37,7 +40,7 @@ public:
 	bool isInside(QPoint p) { return (p.x() > 0 && p.y() > 0 && p.x() < img->width() && p.y() < img->height()) ? true : false; }
 
 	//Draw functions
-	void drawLine(QPoint start, QPoint end, QColor color, int algType = 0);
+	void drawLine(QPoint start, QPoint end, QColor color, int algType = 0, bool crop = true, bool showpoints = false);
 	void setDrawLineBegin(QPoint begin) { drawLineBegin = begin; }
 	QPoint getDrawLineBegin() { return drawLineBegin; }
 	void setDrawLineActivated(bool state) { drawLineActivated = state; }
@@ -77,6 +80,7 @@ public:
 	void DDA(QPoint start, QPoint end, QColor color);
 	void Bresenham(QPoint start, QPoint end, QColor color);
 	void drawCircle(QPoint center, QPoint end, QColor color);
+	void drawCircle(QPoint center, int r, QColor color);
 	void drawPolygon(QVector<QPoint> points, QColor color, int algtype = 0);
 	void drawType(QColor color, int type, int algtype = 0);
 
@@ -88,7 +92,12 @@ public:
 	QVector<QPoint> cropCB(QPoint start, QPoint end);
 	QVector<QPoint> cropSH(QVector<QPoint> V);
 
+	void showPoints(QVector<QPoint> obj);
+
 	void scanLine(QVector<QPoint> obj,QColor color);
+	void fillTriangle(QVector<QPoint> obj, QColor color);
+	void fillTriangleUp(QVector<QPoint> obj, QColor color);
+	void fillTriangleDown(QVector<QPoint> obj, QColor color);
 
 public slots:
 	void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;

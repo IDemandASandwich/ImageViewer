@@ -14,8 +14,7 @@ ImageViewer::ImageViewer(QWidget* parent)
 
 	vW->setObjectName("ViewerWidget");
 	vW->installEventFilter(this);
-
-	globalColor = Qt::blue;
+	globalColor = QColor("#55aa00");
 	QString style_sheet = QString("background-color: #%1;").arg(globalColor.rgba(), 0, 16);
 	ui->pushButtonSetColor->setStyleSheet(style_sheet);
 

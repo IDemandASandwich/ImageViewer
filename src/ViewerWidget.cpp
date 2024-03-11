@@ -54,7 +54,6 @@ bool ViewerWidget::isEmpty()
 	}
 	return false;
 }
-
 bool ViewerWidget::changeSize(int width, int height)
 {
 	QSize newSize(width, height);
@@ -118,19 +117,24 @@ void ViewerWidget::setPixel(int x, int y, const QColor& color)
 }
 
 //Draw functions
-void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType)
+void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType, bool crop, bool showpoints)
 {
-	QVector<QPoint> cropped = cropCB(start, end);
-	
-	if (cropped.isEmpty() == false) {
-		if (cropped.at(0) == QPoint(-1, -1)) {
-			return;
-		}
-		else {
-			start = cropped.at(0);
-			end = cropped.at(1);
+	if (crop) {
+		QVector<QPoint> cropped = cropCB(start, end);
+
+		if (cropped.isEmpty() == false) {
+			if (cropped.at(0) == QPoint(-1, -1)) {
+				return;
+			}
+			else {
+				start = cropped.at(0);
+				end = cropped.at(1);
+			}
 		}
 	}
+
+	if(showpoints)
+		showPoints(QVector<QPoint>({ start, end }));
 
 	switch (algType) {
 	case 0:
@@ -141,7 +145,6 @@ void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType)
 		break;
 	}
 }
-
 void ViewerWidget::drawCircle(QPoint center, QPoint end, QColor color) {
 	int x1 = center.x();
 	int y1 = center.y();
@@ -157,14 +160,14 @@ void ViewerWidget::drawCircle(QPoint center, QPoint end, QColor color) {
 	int dvaY = 2 * r - 2;
 
 	while (x <= y) {
-		setPixel(x1 + x, y1 + y, color);
-		setPixel(x1 + x, y1 - y, color);
-		setPixel(x1 - x, y1 + y, color);
-		setPixel(x1 - x, y1 - y, color);
-		setPixel(x1 + y, y1 + x, color);
-		setPixel(x1 + y, y1 - x, color);
-		setPixel(x1 - y, y1 + x, color);
-		setPixel(x1 - y, y1 - x, color);
+		if (isInside(x1 + x, y1 + y))	setPixel(x1 + x, y1 + y, color);
+		if (isInside(x1 + x, y1 - y))	setPixel(x1 + x, y1 - y, color);
+		if (isInside(x1 - x, y1 + y))	setPixel(x1 - x, y1 + y, color);
+		if (isInside(x1 - x, y1 - y))	setPixel(x1 - x, y1 - y, color);
+		if (isInside(x1 + y, y1 + x))	setPixel(x1 + y, y1 + x, color);
+		if (isInside(x1 + y, y1 - x))	setPixel(x1 + y, y1 - x, color);
+		if (isInside(x1 - y, y1 + x))	setPixel(x1 - y, y1 + x, color);
+		if (isInside(x1 - y, y1 - x))	setPixel(x1 - y, y1 - x, color);
 
 		if (p > 0) {
 			p -= dvaY;
@@ -177,6 +180,58 @@ void ViewerWidget::drawCircle(QPoint center, QPoint end, QColor color) {
 	}
 
 	update();
+}
+void ViewerWidget::drawCircle(QPoint center, int r, QColor color) {
+	drawCircle(center, QPoint(center.x() + r, center.y()), color);
+}
+void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype)
+{
+	QVector<QPoint> cropped = cropSH(points);
+
+	if (cropped.isEmpty() == false) {
+		if (cropped.at(0) == QPoint(-1, -1)) {
+			return;
+		}
+		else {
+			points = cropped;
+		}
+	}
+
+	if (points.size() > 3) {
+		scanLine(points, color);
+	}
+	else if (points.size() == 3) {
+		fillTriangle(points, color);
+	}
+
+	for (int i = 0; i < points.size(); i++) {
+		drawLine(points[i], points[(i + 1) % points.size()], color, algtype, false, showpoints);
+	}
+}
+void ViewerWidget::drawType(QColor color, int type, int algtype) {
+	enum types { line, circle, polygon };
+
+	clear();
+
+	switch (type) {
+	case line:
+		drawLine(object.at(0), object.at(1), color, algtype);
+		break;
+	case circle:
+		drawCircle(object.at(0), object.at(1), color);
+		break;
+	case polygon:
+		drawPolygon(object, color, algtype);
+		break;
+	default:
+		break;
+	}
+}
+
+void ViewerWidget::showPoints(QVector<QPoint> obj) {
+	for (const QPoint p : obj) {
+		drawCircle(p, 3, Qt::red);
+	}
 }
 
 void ViewerWidget::clear()
@@ -229,7 +284,6 @@ void ViewerWidget::DDA(QPoint start, QPoint end, QColor color) {
 
 	update();
 }
-
 void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 	int x1 = start.x();
 	int y1 = start.y();
@@ -332,27 +386,6 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 	update();
 }
 
-void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype) 
-{
-	QVector<QPoint> cropped = cropSH(points);
-
-	if (cropped.isEmpty() == false) {
-		if (cropped.at(0) == QPoint(-1, -1)) {
-			return;
-		}
-		else {
-			points = cropped;
-		}
-	}
-
-	for (int i = 0; i < points.size() - 1; i++) {
-		drawLine(points[i], points[i + 1], color, algtype);
-	}
-	drawLine(points[points.size() - 1], points[0], color, algtype);
-
-	scanLine(points ,color);
-}
-
 void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype) {
 	double theta = ((double)degrees / (double)180) * M_PI;
 	double cx = object.at(0).x();
@@ -368,7 +401,6 @@ void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype
 
 	drawType(color, type, algtype);
 }
-
 void ViewerWidget::scaleObject(double multiplier, QColor color, int type, int algtype) {
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
@@ -380,9 +412,7 @@ void ViewerWidget::scaleObject(double multiplier, QColor color, int type, int al
 
 	drawType(color, type, algtype);
 }
-
 void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor color, int type, int algtype) {
-	enum types { line, circle, polygon };
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
 
@@ -395,10 +425,7 @@ void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor co
 
 	drawType(color, type, algtype);
 }
-
 void ViewerWidget::mirrorObject(int type, QColor color, int algtype) {
-	enum types {line=0, polygon=2};
-
 	QPoint n(object.at(1).y() - object.at(0).y(), object.at(0).x() - object.at(1).x());
 	double a = object.at(1).y() - object.at(0).y();
 	double b = object.at(0).x() - object.at(1).x();
@@ -414,27 +441,6 @@ void ViewerWidget::mirrorObject(int type, QColor color, int algtype) {
 
 	drawType(color, type, algtype);
 }
-
-void ViewerWidget::drawType(QColor color, int type ,int algtype) {
-	enum types {line, circle, polygon};
-
-	clear();
-
-	switch (type) {
-	case line:
-		drawLine(object.at(0), object.at(1), color, algtype);
-		break;
-	case circle:
-		drawCircle(object.at(0), object.at(1), color);
-		break;
-	case polygon:
-		drawPolygon(object, color, algtype);
-		break;
-	default:
-		break;
-	}
-}
-
 void ViewerWidget::shearObjectDx(int type, QColor color, double dx, int algtype) {
 	for (qsizetype i = 1; i < object.size(); i++) {
 		object.replace(i, QPoint(object.at(i).x() + dx * object.at(i).y(), object.at(i).y()));
@@ -446,6 +452,7 @@ void ViewerWidget::shearObjectDx(int type, QColor color, double dx, int algtype)
 QVector<QPoint> ViewerWidget::cropCB(QPoint start, QPoint end) {
 	if (isInside(start) && isInside(end)) { return QVector<QPoint>(); }
 	else if (isInside(start) == false && isInside(end) == false) { return QVector<QPoint>({ QPoint(-1,-1) }); }
+	//TODO: this makes the line invis when put into corner
 
 	double tl = 0, tu = 1;
 	QVector2D d(end.x() - start.x(), end.y() - start.y());
@@ -485,21 +492,21 @@ QVector<QPoint> ViewerWidget::cropCB(QPoint start, QPoint end) {
 
 	return cropped;
 }
-
 QVector<QPoint> ViewerWidget::cropSH(QVector<QPoint> V) {
-	//if all points are in, return empty. If no are in return (-1,-1) for handling
 	int n = 0;
 	for (auto v : V) { if (isInside(v)) { n++; } }
-	if (n == 0) { return QVector<QPoint>({ QPoint(-1,-1) }); }
 	if (n == V.size()) { return QVector<QPoint>(); }
 	
 	QVector<QPoint> W;
 	QVector<QPoint> Vtemp = V;
+	QPoint S;
 
-	double x[4] = { 0, 0, -(img->width() - 1), -(img->height() - 1) };
+	double x[4] = { 0., 0., -(img->width() - 1), -(img->height() - 1) };
 
 	for (int i = 0; i < 4; i++) {
-		QPoint S = Vtemp.last();
+		if (Vtemp.isEmpty() == false)
+			S = Vtemp.last();
+
 		double xmin = x[i];
 
 		for (int j = 0; j < Vtemp.size(); j++) {
@@ -530,10 +537,16 @@ QVector<QPoint> ViewerWidget::cropSH(QVector<QPoint> V) {
 
 		Vtemp = W;
 
-		for (QPoint& p : Vtemp) {
-			p = QPoint(p.y(), -p.x());
+		if(Vtemp.isEmpty() == false){
+			for (QPoint& p : Vtemp) {
+				p = QPoint(p.y(), -p.x());
+			}
 		}
 		W.clear();
+	}
+	
+	if (Vtemp.isEmpty()) {
+		return QVector<QPoint>({ QPoint(-1,-1) });
 	}
 
 	return Vtemp;
@@ -630,5 +643,74 @@ void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
 		}
 
 		y++;
+	}
+}
+void ViewerWidget::fillTriangle(QVector<QPoint> obj, QColor color) {
+	QVector<QPoint> T = obj;
+
+	std::sort(T.begin(), T.end(), [](const QPoint& a, const QPoint& b) {
+		if (a.y() != b.y())
+			return a.y() < b.y();
+		else
+			return a.x() < b.x();
+	});
+
+	if (T.at(0).y() == T.at(1).y()) {
+		fillTriangleDown(T, color);
+	}
+	else if (T.at(1).y() == T.at(2).y()) {
+		fillTriangleUp(T, color);
+	}
+	else {
+		double m = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
+
+		QPoint P(((T.at(1).y() - T.at(0).y()) / m) + T.at(0).x(), T.at(1).y());
+
+		if (T.at(1).x() < P.x()) {
+			fillTriangleUp(QVector<QPoint>({ T.at(0), T.at(1), P }), color);
+			fillTriangleDown(QVector<QPoint>({T.at(1), P, T.at(2)}), color);
+		}
+		else {
+			fillTriangleUp(QVector<QPoint>({ T.at(0), P, T.at(1) }), color);
+			fillTriangleDown(QVector<QPoint>({ P, T.at(1), T.at(2) }), color);
+		}
+	}
+}
+void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QColor color) {
+	double m1 = static_cast<double>(T.at(1).y() - T.at(0).y()) / static_cast<double>(T.at(1).x() - T.at(0).x());
+	double m2 = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
+
+	int y = T.at(0).y();
+	int ymax = T.at(1).y();
+	double x1 = static_cast<double>(T.at(0).x());
+	double x2 = x1;
+
+	for (y; y < ymax; y++) {
+		if (x1 != x2) {
+			for (double x = ceil(x1 - 1); x < ceil(x2 + 1); x++) {
+				setPixel(static_cast<int>(x), y, color);
+			}
+		}
+		x1 += 1./m1;
+		x2 += 1./m2;
+	}
+}
+void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QColor color) {
+	double m1 = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
+	double m2 = static_cast<double>(T.at(2).y() - T.at(1).y()) / static_cast<double>(T.at(2).x() - T.at(1).x());
+
+	int y = T.at(0).y();
+	int ymax = T.at(2).y();
+	double x1 = static_cast<double>(T.at(0).x());
+	double x2 = static_cast<double>(T.at(1).x());
+
+	for (y; y < ymax; y++) {
+		if (x1 != x2) {
+			for (double x = ceil(x1 - 1); x < ceil(x2 + 1); x++) {
+				setPixel(static_cast<int>(x), y, color);
+			}
+		}
+		x1 += 1. / m1;
+		x2 += 1. / m2;
 	}
 }
