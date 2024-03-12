@@ -17,6 +17,7 @@ private:
 	ViewerWidget* vW;
 
 	QColor globalColor;
+	QColor triangleColor[3];	//Leads to passing unnecessary variables, too bad!
 	QSettings settings;
 	QMessageBox msgBox;
 
@@ -51,6 +52,10 @@ private slots:
 
 	//Tools slots
 	void on_pushButtonSetColor_clicked();
+	void on_pushButtonSetColorA_clicked();
+	void on_pushButtonSetColorB_clicked();
+	void on_pushButtonSetColorC_clicked();
+
 	void on_pushButtonClear_clicked();
 	void on_pushButtonRotate_clicked();
 	void on_pushButtonScale_clicked();

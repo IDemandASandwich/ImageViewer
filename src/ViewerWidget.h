@@ -81,28 +81,28 @@ public:
 	void Bresenham(QPoint start, QPoint end, QColor color);
 	void drawCircle(QPoint center, QPoint end, QColor color);
 	void drawCircle(QPoint center, int r, QColor color);
-	void drawPolygon(QVector<QPoint> points, QColor color, int algtype = 0, int triangleFillType = 0);
-	void drawType(QColor color, int type, int algtype = 0, int triangleFillType = 0);
+	void drawPolygon(QVector<QPoint> points, QColor color, QColor triangleColor[3], int algtype = 0, int triangleFillType = 0);
+	void drawType(QColor color, QColor triangleColor[3],int type, int algtype = 0, int triangleFillType = 0);
 
-	void rotateObject(int degrees, int type, QColor color, int algtype = 0, int triangleFillType = 0);
-	void scaleObject(double multiplier, QColor color, int type, int algtype = 0, int triangleFillType = 0);
-	void scaleObject(double multiplierX, double multiplierY, QColor color, int type, int algtype = 0, int triangleFillType = 0);
-	void mirrorObject(int type, QColor color, int algtype = 0, int triangleFillType = 0);
-	void shearObjectDx(int type, QColor color, double dx, int algtype = 0, int triangleFillType = 0);
+	void rotateObject(int degrees, int type, QColor color, QColor triangleColor[3], int algtype = 0, int triangleFillType = 0);
+	void scaleObject(double multiplier, QColor color, QColor triangleColor[3], int type, int algtype = 0, int triangleFillType = 0);
+	void scaleObject(double multiplierX, double multiplierY, QColor color, QColor triangleColor[3], int type, int algtype = 0, int triangleFillType = 0);
+	void mirrorObject(int type, QColor color, QColor triangleColor[3], int algtype = 0, int triangleFillType = 0);
+	void shearObjectDx(int type, QColor color, QColor triangleColor[3], double dx, int algtype = 0, int triangleFillType = 0);
 	QVector<QPoint> cropCB(QPoint start, QPoint end);
 	QVector<QPoint> cropSH(QVector<QPoint> V);
 
 	void showPoints(QVector<QPoint> obj);
 
 	void scanLine(QVector<QPoint> obj,QColor color);
-	void fillTriangle(QVector<QPoint> obj, QColor color, int fillType);
-	void fillTriangleUp(QVector<QPoint> T, QColor color, int fillType);
-	void fillTriangleDown(QVector<QPoint> T, QColor color, int fillType);
-	void fillTriangleUp(QVector<QPoint> T, QPoint P,QColor color, int fillType);
-	void fillTriangleDown(QVector<QPoint> T, QPoint P, QColor color, int fillType);
+	void fillTriangle(QVector<QPoint> obj, QColor color, int fillType, QColor triangleColor[3]);
+	void fillTriangleUp(QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]);
+	void fillTriangleDown(QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]);
+	void fillTriangleUp(QVector<QPoint> T, QPoint P,QColor color, int fillType, QColor triangleColor[3]);
+	void fillTriangleDown(QVector<QPoint> T, QPoint P, QColor color, int fillType, QColor triangleColor[3]);
 
-	QColor nearestNeighbor(int x, int y, QVector<QPoint> T, QColor C0 = Qt::blue, QColor C1 = Qt::red , QColor C2 = Qt::green);
-	QColor barycentric(int x, int y, QVector<QPoint> T, QColor C0 = Qt::blue, QColor C1 = Qt::red, QColor C2 = Qt::green);
+	QColor nearestNeighbor(int x, int y, QVector<QPoint> T, QColor triangleColor[3]);
+	QColor barycentric(int x, int y, QVector<QPoint> T, QColor triangleColor[3]);
 
 public slots:
 	void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;

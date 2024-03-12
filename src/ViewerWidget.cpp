@@ -184,7 +184,7 @@ void ViewerWidget::drawCircle(QPoint center, QPoint end, QColor color) {
 void ViewerWidget::drawCircle(QPoint center, int r, QColor color) {
 	drawCircle(center, QPoint(center.x() + r, center.y()), color);
 }
-void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype, int triangleFillType)
+void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, QColor triangleColor[3], int algtype, int triangleFillType)
 {
 	QVector<QPoint> cropped = cropSH(points);
 
@@ -201,14 +201,14 @@ void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, int algtype
 		scanLine(points, color);
 	}
 	else if (points.size() == 3) {
-		fillTriangle(points, color, triangleFillType);
+		fillTriangle(points, color, triangleFillType, triangleColor);
 	}
 
 	for (int i = 0; i < points.size(); i++) {
 		drawLine(points[i], points[(i + 1) % points.size()], color, algtype, false, showpoints);
 	}
 }
-void ViewerWidget::drawType(QColor color, int type, int algtype, int triangleFillType) {
+void ViewerWidget::drawType(QColor color, QColor triangleColor[3], int type, int algtype, int triangleFillType) {
 	enum types { line, circle, polygon };
 
 	clear();
@@ -221,7 +221,7 @@ void ViewerWidget::drawType(QColor color, int type, int algtype, int triangleFil
 		drawCircle(object.at(0), object.at(1), color);
 		break;
 	case polygon:
-		drawPolygon(object, color, algtype, triangleFillType);
+		drawPolygon(object, color, triangleColor, algtype, triangleFillType);
 		break;
 	default:
 		break;
@@ -386,7 +386,7 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 	update();
 }
 
-void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype, int triangleFillType) {
+void ViewerWidget::rotateObject(int degrees, int type, QColor color, QColor triangleColor[3], int algtype, int triangleFillType) {
 	double theta = ((double)degrees / (double)180) * M_PI;
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
@@ -399,9 +399,9 @@ void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype
 		object.replace(i, p);
 	}
 
-	drawType(color, type, algtype, triangleFillType);
+	drawType(color, triangleColor, type, algtype, triangleFillType);
 }
-void ViewerWidget::scaleObject(double multiplier, QColor color, int type, int algtype, int triangleFillType) {
+void ViewerWidget::scaleObject(double multiplier, QColor color, QColor triangleColor[3], int type, int algtype, int triangleFillType) {
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
 
@@ -410,9 +410,9 @@ void ViewerWidget::scaleObject(double multiplier, QColor color, int type, int al
 		object.replace(i, p);
 	}
 
-	drawType(color, type, algtype, triangleFillType);
+	drawType(color, triangleColor, type, algtype, triangleFillType);
 }
-void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor color, int type, int algtype, int triangleFillType) {
+void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor color, QColor triangleColor[3], int type, int algtype, int triangleFillType) {
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
 
@@ -423,9 +423,9 @@ void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor co
 		object.replace(i, p);
 	}
 
-	drawType(color, type, algtype, triangleFillType);
+	drawType(color, triangleColor, type, algtype, triangleFillType);
 }
-void ViewerWidget::mirrorObject(int type, QColor color, int algtype, int triangleFillType) {
+void ViewerWidget::mirrorObject(int type, QColor color, QColor triangleColor[3], int algtype, int triangleFillType) {
 	QPoint n(object.at(1).y() - object.at(0).y(), object.at(0).x() - object.at(1).x());
 	double a = object.at(1).y() - object.at(0).y();
 	double b = object.at(0).x() - object.at(1).x();
@@ -439,20 +439,19 @@ void ViewerWidget::mirrorObject(int type, QColor color, int algtype, int triangl
 		object.replace(i, QPoint(x - 2 * a * d, y - 2 * b * d));
 	}
 
-	drawType(color, type, algtype, triangleFillType);
+	drawType(color, triangleColor, type, algtype, triangleFillType);
 }
-void ViewerWidget::shearObjectDx(int type, QColor color, double dx, int algtype, int triangleFillType) {
+void ViewerWidget::shearObjectDx(int type, QColor color, QColor triangleColor[3], double dx, int algtype, int triangleFillType) {
 	for (qsizetype i = 1; i < object.size(); i++) {
 		object.replace(i, QPoint(object.at(i).x() + dx * object.at(i).y(), object.at(i).y()));
 	}
 	
-	drawType(color, type, algtype, triangleFillType);
+	drawType(color, triangleColor, type, algtype, triangleFillType);
 }
 
 QVector<QPoint> ViewerWidget::cropCB(QPoint start, QPoint end) {
 	if (isInside(start) && isInside(end)) { return QVector<QPoint>(); }
 	else if (isInside(start) == false && isInside(end) == false) { return QVector<QPoint>({ QPoint(-1,-1) }); }
-	//TODO: this makes the line invis when put into corner
 
 	double tl = 0, tu = 1;
 	QVector2D d(end.x() - start.x(), end.y() - start.y());
@@ -639,7 +638,7 @@ void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
 		y++;
 	}
 }
-void ViewerWidget::fillTriangle(QVector<QPoint> obj, QColor color, int fillType) {
+void ViewerWidget::fillTriangle(QVector<QPoint> obj, QColor color, int fillType, QColor triangleColor[3]) {
 	QVector<QPoint> T = obj;
 
 	std::sort(T.begin(), T.end(), [](const QPoint& a, const QPoint& b) {
@@ -650,21 +649,21 @@ void ViewerWidget::fillTriangle(QVector<QPoint> obj, QColor color, int fillType)
 	});
 
 	if (T.at(0).y() == T.at(1).y()) {
-		fillTriangleDown(T, color, fillType);
+		fillTriangleDown(T, color, fillType, triangleColor);
 	}
 	else if (T.at(1).y() == T.at(2).y()) {
-		fillTriangleUp(T, color, fillType);
+		fillTriangleUp(T, color, fillType, triangleColor);
 	}
 	else {
 		double m = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
 
 		QPoint P(((T.at(1).y() - T.at(0).y()) / m) + T.at(0).x(), T.at(1).y());
 
-		fillTriangleDown(T, P, color, fillType);
-		fillTriangleUp(T, P, color, fillType);
+		fillTriangleDown(T, P, color, fillType, triangleColor);
+		fillTriangleUp(T, P, color, fillType, triangleColor);
 	}
 }
-void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QColor color, int fillType) {
+void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]) {
 
 	double m1 = static_cast<double>(T.at(1).y() - T.at(0).y()) / static_cast<double>(T.at(1).x() - T.at(0).x());
 	double m2 = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
@@ -678,10 +677,10 @@ void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QColor color, int fillType)
 		if (x1 != x2) {
 			for (double x = ceil(x1 - 1); x < ceil(x2 + 1); x++) {
 				if (fillType == 1) {
-					color = nearestNeighbor(x, y, T);
+					color = nearestNeighbor(x, y, T, triangleColor);
 				}
 				else if (fillType == 2) {
-					color = barycentric(x, y, T);
+					color = barycentric(x, y, T, triangleColor);
 				}
 
 				setPixel(static_cast<int>(x), y, color);
@@ -691,7 +690,7 @@ void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QColor color, int fillType)
 		x2 += 1./m2;
 	}
 }
-void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QColor color, int fillType) {
+void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]) {
 	double m1 = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
 	double m2 = static_cast<double>(T.at(2).y() - T.at(1).y()) / static_cast<double>(T.at(2).x() - T.at(1).x());
 
@@ -704,10 +703,10 @@ void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QColor color, int fillTyp
 		if (x1 != x2) {
 			for (double x = ceil(x1 - 1); x < ceil(x2 + 1); x++) {
 				if (fillType == 1) {
-					color = nearestNeighbor(x, y, T);
+					color = nearestNeighbor(x, y, T, triangleColor);
 				}
 				else if (fillType == 2) {
-					color = barycentric(x, y, T);
+					color = barycentric(x, y, T, triangleColor);
 				}
 
 				setPixel(static_cast<int>(x), y, color);
@@ -717,7 +716,7 @@ void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QColor color, int fillTyp
 		x2 += 1. / m2;
 	}
 }
-void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QPoint P, QColor color, int fillType) {
+void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QPoint P, QColor color, int fillType, QColor triangleColor[3]) {
 	QVector<QPoint> Tt = T;
 	if (Tt.at(1).x() < P.x()) {
 		//T(T0,T1,T2) -> T(T0,T1,P)
@@ -741,10 +740,10 @@ void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QPoint P, QColor color, int
 		if (x1 != x2) {
 			for (double x = ceil(x1 - 1); x < ceil(x2 + 1); x++) {
 				if (fillType == 1) {
-					color = nearestNeighbor(x, y, T);
+					color = nearestNeighbor(x, y, T, triangleColor);
 				}
 				else if (fillType == 2) {
-					color = barycentric(x, y, T);
+					color = barycentric(x, y, T, triangleColor);
 				}
 
 				setPixel(static_cast<int>(x), y, color);
@@ -754,7 +753,7 @@ void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QPoint P, QColor color, int
 		x2 += 1. / m2;
 	}
 }
-void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QPoint P, QColor color, int fillType) {
+void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QPoint P, QColor color, int fillType, QColor triangleColor[3]) {
 	QVector<QPoint> Tt = T;
 	if (Tt.at(1).x() < P.x()) {
 		//T(T0,T1,T2) -> T(T1,P,T2)
@@ -778,10 +777,10 @@ void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QPoint P, QColor color, i
 		if (x1 != x2) {
 			for (double x = ceil(x1 - 1); x < ceil(x2 + 1); x++) {
 				if (fillType == 1) {
-					color = nearestNeighbor(x, y, T);
+					color = nearestNeighbor(x, y, T, triangleColor);
 				}
 				else if (fillType == 2) {
-					color = barycentric(x, y, T);
+					color = barycentric(x, y, T, triangleColor);
 				}
 
 				setPixel(static_cast<int>(x), y, color);
@@ -792,22 +791,22 @@ void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QPoint P, QColor color, i
 	}
 }
 
-QColor ViewerWidget::nearestNeighbor(int x, int y, QVector<QPoint> T, QColor C0, QColor C1, QColor C2) {
+QColor ViewerWidget::nearestNeighbor(int x, int y, QVector<QPoint> T, QColor triangleColor[3]) {
 	double d0 = sqrt(pow(T[0].x() - x, 2) + pow(T[0].y() - y, 2));
 	double d1 = sqrt(pow(T[1].x() - x, 2) + pow(T[1].y() - y, 2));
 	double d2 = sqrt(pow(T[2].x() - x, 2) + pow(T[2].y() - y, 2));
 
 	if (d0 < d1 && d0 < d2) {
-		return C0;
+		return triangleColor[0];
 	}
 	else if (d1 < d0 && d1 < d2) {
-		return C1;
+		return triangleColor[1];
 	}
 	else {
-		return C2;
+		return triangleColor[2];
 	}
 }
-QColor ViewerWidget::barycentric(int x, int y, QVector<QPoint> T, QColor C0, QColor C1, QColor C2) {
+QColor ViewerWidget::barycentric(int x, int y, QVector<QPoint> T, QColor triangleColor[3]) {
 	double A = static_cast<double>(abs((T[1].x() - T[0].x()) * (T[2].y() - T[0].y()) - (T[1].y() - T[0].y()) * (T[2].x() - T[0].x())));
 	double A0 = static_cast<double>(abs((T[1].x() - x) * (T[2].y() - y) - (T[1].y() - y) * (T[2].x() - x)));
 	double A1 = static_cast<double>(abs((T[0].x() - x) * (T[2].y() - y) - (T[0].y() - y) * (T[2].x() - x)));
@@ -815,9 +814,9 @@ QColor ViewerWidget::barycentric(int x, int y, QVector<QPoint> T, QColor C0, QCo
 	double lambda1 = A1 / A;
 	double lambda2 = 1 - lambda0 - lambda1;
 
-	int r = lambda0 * C0.red() + lambda1 * C1.red() + lambda2 * C2.red();
-	int g = lambda0 * C0.green() + lambda1 * C1.green() + lambda2 * C2.green();
-	int b = lambda0 * C0.blue() + lambda1 * C1.blue() + lambda2 * C2.blue();
+	int r = lambda0 * triangleColor[0].red() + lambda1 * triangleColor[1].red() + lambda2 * triangleColor[2].red();
+	int g = lambda0 * triangleColor[0].green() + lambda1 * triangleColor[1].green() + lambda2 * triangleColor[2].green();
+	int b = lambda0 * triangleColor[0].blue() + lambda1 * triangleColor[1].blue() + lambda2 * triangleColor[2].blue();
 
 	return QColor(r, g, b);
 }

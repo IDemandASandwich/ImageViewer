@@ -18,6 +18,14 @@ ImageViewer::ImageViewer(QWidget* parent)
 	QString style_sheet = QString("background-color: #%1;").arg(globalColor.rgba(), 0, 16);
 	ui->pushButtonSetColor->setStyleSheet(style_sheet);
 
+	triangleColor[0] = Qt::red;
+	triangleColor[1] = Qt::green;
+	triangleColor[2] = Qt::blue;
+	ui->pushButtonSetColorA->setStyleSheet(QString("background-color: #%1;").arg(triangleColor[0].rgba(), 0, 16));
+	ui->pushButtonSetColorB->setStyleSheet(QString("background-color: #%1;").arg(triangleColor[1].rgba(), 0, 16));
+	ui->pushButtonSetColorC->setStyleSheet(QString("background-color: #%1;").arg(triangleColor[2].rgba(), 0, 16));
+
+
 	initializeButtonGroup();
 }
 
@@ -108,7 +116,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 		}
 		else if (e->button() == Qt::RightButton && ui->toolButtonDrawPolygon->isChecked()) {
 			if (w->getDrawPolygonActivated()) {
-				w->drawPolygon(w->getObject(), globalColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
+				w->drawPolygon(w->getObject(), globalColor, triangleColor,ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 				w->setMoveActive(true);
 			}
 		}
@@ -163,7 +171,7 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 			}
 
 			w->clear();
-			w->drawPolygon(temp, globalColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
+			w->drawPolygon(temp, globalColor, triangleColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 		}
 	}
 }
@@ -194,7 +202,7 @@ void ImageViewer::ViewerWidgetWheel(ViewerWidget* w, QEvent* event)
 		else
 			multiplier = 0.75;
 
-		vW->scaleObject(multiplier, globalColor, type, ui->comboBoxLineAlg->currentIndex());
+		vW->scaleObject(multiplier, globalColor, triangleColor, type, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 	}
 		
 }
@@ -289,6 +297,34 @@ void ImageViewer::on_pushButtonSetColor_clicked()
 		globalColor = newColor;
 	}
 }
+void ImageViewer::on_pushButtonSetColorA_clicked()
+{
+	QColor newColor = QColorDialog::getColor(globalColor, this);
+	if (newColor.isValid()) {
+		QString style_sheet = QString("background-color: #%1;").arg(newColor.rgba(), 0, 16);
+		ui->pushButtonSetColorA->setStyleSheet(style_sheet);
+		triangleColor[0] = newColor;
+	}
+}
+void ImageViewer::on_pushButtonSetColorB_clicked()
+{
+	QColor newColor = QColorDialog::getColor(globalColor, this);
+	if (newColor.isValid()) {
+		QString style_sheet = QString("background-color: #%1;").arg(newColor.rgba(), 0, 16);
+		ui->pushButtonSetColorB->setStyleSheet(style_sheet);
+		triangleColor[1] = newColor;
+	}
+}
+void ImageViewer::on_pushButtonSetColorC_clicked()
+{
+	QColor newColor = QColorDialog::getColor(globalColor, this);
+	if (newColor.isValid()) {
+		QString style_sheet = QString("background-color: #%1;").arg(newColor.rgba(), 0, 16);
+		ui->pushButtonSetColorC->setStyleSheet(style_sheet);
+		triangleColor[2] = newColor;
+	}
+}
+
 void ImageViewer::on_pushButtonClear_clicked()
 {
 	vW->clear();
@@ -332,7 +368,7 @@ void ImageViewer::on_pushButtonRotate_clicked() {
 	else if (ui->toolButtonDrawPolygon->isChecked())
 		type = polygon;
 
-	vW->rotateObject(ui->spinBoxRotate->value(), type, globalColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
+	vW->rotateObject(ui->spinBoxRotate->value(), type, globalColor, triangleColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 }
 void ImageViewer::on_pushButtonScale_clicked() {
 	enum types { line, circle, polygon };
@@ -345,7 +381,7 @@ void ImageViewer::on_pushButtonScale_clicked() {
 	else if (ui->toolButtonDrawPolygon->isChecked())
 		type = polygon;
 
-	vW->scaleObject(ui->doubleSpinBoxScaleX->value(), ui->doubleSpinBoxScaleY->value(),globalColor, type, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
+	vW->scaleObject(ui->doubleSpinBoxScaleX->value(), ui->doubleSpinBoxScaleY->value(),globalColor, triangleColor, type, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 }
 void ImageViewer::on_pushButtonMirror_clicked() {
 	enum types { line, circle, polygon };
@@ -358,7 +394,7 @@ void ImageViewer::on_pushButtonMirror_clicked() {
 	else if (ui->toolButtonDrawPolygon->isChecked())
 		type = polygon;
 
-	vW->mirrorObject(type, globalColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
+	vW->mirrorObject(type, globalColor, triangleColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 }
 void ImageViewer::on_pushButtonShear_clicked() {
 	enum types { line, circle, polygon };
@@ -371,5 +407,5 @@ void ImageViewer::on_pushButtonShear_clicked() {
 	else if (ui->toolButtonDrawPolygon->isChecked())
 		type = polygon;
 
-	vW->shearObjectDx(type, globalColor, ui->doubleSpinBoxScaleX->value(), ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
+	vW->shearObjectDx(type, globalColor, triangleColor, ui->doubleSpinBoxScaleX->value(), ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 }

@@ -81,9 +81,9 @@ public:
     QGroupBox *groupBoxFill;
     QGridLayout *gridLayout_5;
     QGridLayout *gridLayout_2;
-    QPushButton *pushButtonColorA;
-    QPushButton *pushButtonColorB;
-    QPushButton *pushButtonColorC;
+    QPushButton *pushButtonSetColorA;
+    QPushButton *pushButtonSetColorB;
+    QPushButton *pushButtonSetColorC;
     QComboBox *comboBoxFillType;
     QSpacerItem *verticalSpacer;
 
@@ -91,7 +91,7 @@ public:
     {
         if (ImageViewerClass->objectName().isEmpty())
             ImageViewerClass->setObjectName("ImageViewerClass");
-        ImageViewerClass->resize(803, 591);
+        ImageViewerClass->resize(801, 588);
         actionOpen = new QAction(ImageViewerClass);
         actionOpen->setObjectName("actionOpen");
         actionSave_as = new QAction(ImageViewerClass);
@@ -113,7 +113,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName("scrollAreaWidgetContents");
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 524, 516));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 522, 513));
         scrollArea->setWidget(scrollAreaWidgetContents);
 
         horizontalLayout->addWidget(scrollArea);
@@ -121,7 +121,7 @@ public:
         ImageViewerClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(ImageViewerClass);
         menuBar->setObjectName("menuBar");
-        menuBar->setGeometry(QRect(0, 0, 803, 22));
+        menuBar->setGeometry(QRect(0, 0, 801, 22));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName("menuFile");
         menuImage = new QMenu(menuBar);
@@ -335,20 +335,20 @@ public:
         gridLayout_2 = new QGridLayout();
         gridLayout_2->setSpacing(6);
         gridLayout_2->setObjectName("gridLayout_2");
-        pushButtonColorA = new QPushButton(groupBoxFill);
-        pushButtonColorA->setObjectName("pushButtonColorA");
+        pushButtonSetColorA = new QPushButton(groupBoxFill);
+        pushButtonSetColorA->setObjectName("pushButtonSetColorA");
 
-        gridLayout_2->addWidget(pushButtonColorA, 1, 0, 1, 1);
+        gridLayout_2->addWidget(pushButtonSetColorA, 1, 0, 1, 1);
 
-        pushButtonColorB = new QPushButton(groupBoxFill);
-        pushButtonColorB->setObjectName("pushButtonColorB");
+        pushButtonSetColorB = new QPushButton(groupBoxFill);
+        pushButtonSetColorB->setObjectName("pushButtonSetColorB");
 
-        gridLayout_2->addWidget(pushButtonColorB, 1, 1, 1, 1);
+        gridLayout_2->addWidget(pushButtonSetColorB, 1, 1, 1, 1);
 
-        pushButtonColorC = new QPushButton(groupBoxFill);
-        pushButtonColorC->setObjectName("pushButtonColorC");
+        pushButtonSetColorC = new QPushButton(groupBoxFill);
+        pushButtonSetColorC->setObjectName("pushButtonSetColorC");
 
-        gridLayout_2->addWidget(pushButtonColorC, 1, 2, 1, 1);
+        gridLayout_2->addWidget(pushButtonSetColorC, 1, 2, 1, 1);
 
         comboBoxFillType = new QComboBox(groupBoxFill);
         comboBoxFillType->addItem(QString());
