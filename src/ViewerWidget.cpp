@@ -386,7 +386,7 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 	update();
 }
 
-void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype) {
+void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype, int triangleFillType) {
 	double theta = ((double)degrees / (double)180) * M_PI;
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
@@ -399,9 +399,9 @@ void ViewerWidget::rotateObject(int degrees, int type, QColor color, int algtype
 		object.replace(i, p);
 	}
 
-	drawType(color, type, algtype);
+	drawType(color, type, algtype, triangleFillType);
 }
-void ViewerWidget::scaleObject(double multiplier, QColor color, int type, int algtype) {
+void ViewerWidget::scaleObject(double multiplier, QColor color, int type, int algtype, int triangleFillType) {
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
 
@@ -410,9 +410,9 @@ void ViewerWidget::scaleObject(double multiplier, QColor color, int type, int al
 		object.replace(i, p);
 	}
 
-	drawType(color, type, algtype);
+	drawType(color, type, algtype, triangleFillType);
 }
-void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor color, int type, int algtype) {
+void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor color, int type, int algtype, int triangleFillType) {
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
 
@@ -423,9 +423,9 @@ void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor co
 		object.replace(i, p);
 	}
 
-	drawType(color, type, algtype);
+	drawType(color, type, algtype, triangleFillType);
 }
-void ViewerWidget::mirrorObject(int type, QColor color, int algtype) {
+void ViewerWidget::mirrorObject(int type, QColor color, int algtype, int triangleFillType) {
 	QPoint n(object.at(1).y() - object.at(0).y(), object.at(0).x() - object.at(1).x());
 	double a = object.at(1).y() - object.at(0).y();
 	double b = object.at(0).x() - object.at(1).x();
@@ -439,14 +439,14 @@ void ViewerWidget::mirrorObject(int type, QColor color, int algtype) {
 		object.replace(i, QPoint(x - 2 * a * d, y - 2 * b * d));
 	}
 
-	drawType(color, type, algtype);
+	drawType(color, type, algtype, triangleFillType);
 }
-void ViewerWidget::shearObjectDx(int type, QColor color, double dx, int algtype) {
+void ViewerWidget::shearObjectDx(int type, QColor color, double dx, int algtype, int triangleFillType) {
 	for (qsizetype i = 1; i < object.size(); i++) {
 		object.replace(i, QPoint(object.at(i).x() + dx * object.at(i).y(), object.at(i).y()));
 	}
 	
-	drawType(color, type, algtype);
+	drawType(color, type, algtype, triangleFillType);
 }
 
 QVector<QPoint> ViewerWidget::cropCB(QPoint start, QPoint end) {
@@ -808,5 +808,16 @@ QColor ViewerWidget::nearestNeighbor(int x, int y, QVector<QPoint> T, QColor C0,
 	}
 }
 QColor ViewerWidget::barycentric(int x, int y, QVector<QPoint> T, QColor C0, QColor C1, QColor C2) {
-	return QColor(100,100,100,255);
+	double A = static_cast<double>(abs((T[1].x() - T[0].x()) * (T[2].y() - T[0].y()) - (T[1].y() - T[0].y()) * (T[2].x() - T[0].x())));
+	double A0 = static_cast<double>(abs((T[1].x() - x) * (T[2].y() - y) - (T[1].y() - y) * (T[2].x() - x)));
+	double A1 = static_cast<double>(abs((T[0].x() - x) * (T[2].y() - y) - (T[0].y() - y) * (T[2].x() - x)));
+	double lambda0 = A0 / A;
+	double lambda1 = A1 / A;
+	double lambda2 = 1 - lambda0 - lambda1;
+
+	int r = lambda0 * C0.red() + lambda1 * C1.red() + lambda2 * C2.red();
+	int g = lambda0 * C0.green() + lambda1 * C1.green() + lambda2 * C2.green();
+	int b = lambda0 * C0.blue() + lambda1 * C1.blue() + lambda2 * C2.blue();
+
+	return QColor(r, g, b);
 }

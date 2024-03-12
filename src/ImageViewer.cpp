@@ -332,7 +332,7 @@ void ImageViewer::on_pushButtonRotate_clicked() {
 	else if (ui->toolButtonDrawPolygon->isChecked())
 		type = polygon;
 
-	vW->rotateObject(ui->spinBoxRotate->value(), type, globalColor, ui->comboBoxLineAlg->currentIndex());
+	vW->rotateObject(ui->spinBoxRotate->value(), type, globalColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 }
 void ImageViewer::on_pushButtonScale_clicked() {
 	enum types { line, circle, polygon };
@@ -345,7 +345,7 @@ void ImageViewer::on_pushButtonScale_clicked() {
 	else if (ui->toolButtonDrawPolygon->isChecked())
 		type = polygon;
 
-	vW->scaleObject(ui->doubleSpinBoxScaleX->value(), ui->doubleSpinBoxScaleY->value(),globalColor, type, ui->comboBoxLineAlg->currentIndex());
+	vW->scaleObject(ui->doubleSpinBoxScaleX->value(), ui->doubleSpinBoxScaleY->value(),globalColor, type, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 }
 void ImageViewer::on_pushButtonMirror_clicked() {
 	enum types { line, circle, polygon };
@@ -358,7 +358,7 @@ void ImageViewer::on_pushButtonMirror_clicked() {
 	else if (ui->toolButtonDrawPolygon->isChecked())
 		type = polygon;
 
-	vW->mirrorObject(type, globalColor, ui->comboBoxLineAlg->currentIndex());
+	vW->mirrorObject(type, globalColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 }
 void ImageViewer::on_pushButtonShear_clicked() {
 	enum types { line, circle, polygon };
@@ -371,5 +371,5 @@ void ImageViewer::on_pushButtonShear_clicked() {
 	else if (ui->toolButtonDrawPolygon->isChecked())
 		type = polygon;
 
-	vW->shearObjectDx(type, globalColor, ui->doubleSpinBoxScaleX->value(), ui->comboBoxLineAlg->currentIndex());
+	vW->shearObjectDx(type, globalColor, ui->doubleSpinBoxScaleX->value(), ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 }

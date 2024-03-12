@@ -84,11 +84,11 @@ public:
 	void drawPolygon(QVector<QPoint> points, QColor color, int algtype = 0, int triangleFillType = 0);
 	void drawType(QColor color, int type, int algtype = 0, int triangleFillType = 0);
 
-	void rotateObject(int degrees, int type, QColor color, int algtype = 0);
-	void scaleObject(double multiplier, QColor color, int type, int algtype = 0);
-	void scaleObject(double multiplierX, double multiplierY, QColor color, int type,int algtype = 0);
-	void mirrorObject(int type, QColor color, int algtype = 0);
-	void shearObjectDx(int type, QColor color, double dx, int algtype = 0);
+	void rotateObject(int degrees, int type, QColor color, int algtype = 0, int triangleFillType = 0);
+	void scaleObject(double multiplier, QColor color, int type, int algtype = 0, int triangleFillType = 0);
+	void scaleObject(double multiplierX, double multiplierY, QColor color, int type, int algtype = 0, int triangleFillType = 0);
+	void mirrorObject(int type, QColor color, int algtype = 0, int triangleFillType = 0);
+	void shearObjectDx(int type, QColor color, double dx, int algtype = 0, int triangleFillType = 0);
 	QVector<QPoint> cropCB(QPoint start, QPoint end);
 	QVector<QPoint> cropSH(QVector<QPoint> V);
 
