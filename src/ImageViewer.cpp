@@ -14,7 +14,7 @@ ImageViewer::ImageViewer(QWidget* parent)
 
 	vW->setObjectName("ViewerWidget");
 	vW->installEventFilter(this);
-	globalColor = QColor("#55aa00");
+	globalColor = Qt::black;
 	QString style_sheet = QString("background-color: #%1;").arg(globalColor.rgba(), 0, 16);
 	ui->pushButtonSetColor->setStyleSheet(style_sheet);
 
@@ -108,7 +108,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 		}
 		else if (e->button() == Qt::RightButton && ui->toolButtonDrawPolygon->isChecked()) {
 			if (w->getDrawPolygonActivated()) {
-				w->drawPolygon(w->getObject(), globalColor, ui->comboBoxLineAlg->currentIndex());
+				w->drawPolygon(w->getObject(), globalColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 				w->setMoveActive(true);
 			}
 		}
@@ -119,6 +119,10 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 			w->setOrigin(e->pos());
 		}
 	}
+
+	ui->groupBoxFill->setVisible(true);
+	ui->groupBoxEdit->setVisible(true);
+	ui->groupBoxDraw->setVisible(false);
 }
 void ImageViewer::ViewerWidgetMouseButtonRelease(ViewerWidget* w, QEvent* event)
 {
@@ -159,7 +163,7 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 			}
 
 			w->clear();
-			w->drawPolygon(temp, globalColor, ui->comboBoxLineAlg->currentIndex());
+			w->drawPolygon(temp, globalColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 		}
 	}
 }
@@ -285,13 +289,16 @@ void ImageViewer::on_pushButtonSetColor_clicked()
 		globalColor = newColor;
 	}
 }
-
 void ImageViewer::on_pushButtonClear_clicked()
 {
 	vW->clear();
 	vW->clearObjectPoints();
 	vW->setMoveActive(false);
 	enableButtons(true);
+
+	ui->groupBoxDraw->setVisible(true);
+	ui->groupBoxEdit->setVisible(false);
+	ui->groupBoxFill->setVisible(false);
 }
 
 void ImageViewer::initializeButtonGroup()
@@ -302,11 +309,13 @@ void ImageViewer::initializeButtonGroup()
 	buttonGroup->addButton(ui->toolButtonDrawCircle);
 	buttonGroup->setExclusive(true);
 
+	ui->groupBoxEdit->setVisible(false);
+	ui->groupBoxFill->setVisible(false);
+
 	connect(ui->toolButtonDrawCircle, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setEnabled(false);	});
 	connect(ui->toolButtonDrawLine, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setEnabled(true);	});
 	connect(ui->toolButtonDrawPolygon, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setEnabled(true);	});
 }
-
 void ImageViewer::enableButtons(bool state) {
 	ui->comboBoxLineAlg->setEnabled(state);
 	ui->toolButtonDrawCircle->setEnabled(state);
@@ -325,7 +334,6 @@ void ImageViewer::on_pushButtonRotate_clicked() {
 
 	vW->rotateObject(ui->spinBoxRotate->value(), type, globalColor, ui->comboBoxLineAlg->currentIndex());
 }
-
 void ImageViewer::on_pushButtonScale_clicked() {
 	enum types { line, circle, polygon };
 	int type = 0;
@@ -339,7 +347,6 @@ void ImageViewer::on_pushButtonScale_clicked() {
 
 	vW->scaleObject(ui->doubleSpinBoxScaleX->value(), ui->doubleSpinBoxScaleY->value(),globalColor, type, ui->comboBoxLineAlg->currentIndex());
 }
-
 void ImageViewer::on_pushButtonMirror_clicked() {
 	enum types { line, circle, polygon };
 	int type = 0;
@@ -353,7 +360,6 @@ void ImageViewer::on_pushButtonMirror_clicked() {
 
 	vW->mirrorObject(type, globalColor, ui->comboBoxLineAlg->currentIndex());
 }
-
 void ImageViewer::on_pushButtonShear_clicked() {
 	enum types { line, circle, polygon };
 	int type = 0;

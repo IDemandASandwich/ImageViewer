@@ -60,8 +60,8 @@ public:
     QPushButton *pushButtonClear;
     QGroupBox *groupBoxDraw;
     QGridLayout *gridLayout;
-    QComboBox *comboBoxLineAlg;
     QToolButton *toolButtonDrawPolygon;
+    QComboBox *comboBoxLineAlg;
     QToolButton *toolButtonDrawCircle;
     QToolButton *toolButtonDrawLine;
     QGroupBox *groupBoxEdit;
@@ -78,13 +78,20 @@ public:
     QPushButton *pushButtonScale;
     QLabel *label;
     QPushButton *pushButtonRotate;
+    QGroupBox *groupBoxFill;
+    QGridLayout *gridLayout_5;
+    QGridLayout *gridLayout_2;
+    QPushButton *pushButtonColorA;
+    QPushButton *pushButtonColorB;
+    QPushButton *pushButtonColorC;
+    QComboBox *comboBoxFillType;
     QSpacerItem *verticalSpacer;
 
     void setupUi(QMainWindow *ImageViewerClass)
     {
         if (ImageViewerClass->objectName().isEmpty())
             ImageViewerClass->setObjectName("ImageViewerClass");
-        ImageViewerClass->resize(807, 599);
+        ImageViewerClass->resize(803, 591);
         actionOpen = new QAction(ImageViewerClass);
         actionOpen->setObjectName("actionOpen");
         actionSave_as = new QAction(ImageViewerClass);
@@ -106,7 +113,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName("scrollAreaWidgetContents");
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 534, 524));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 524, 516));
         scrollArea->setWidget(scrollAreaWidgetContents);
 
         horizontalLayout->addWidget(scrollArea);
@@ -114,7 +121,7 @@ public:
         ImageViewerClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(ImageViewerClass);
         menuBar->setObjectName("menuBar");
-        menuBar->setGeometry(QRect(0, 0, 807, 22));
+        menuBar->setGeometry(QRect(0, 0, 803, 22));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName("menuFile");
         menuImage = new QMenu(menuBar);
@@ -128,6 +135,12 @@ public:
         ImageViewerClass->setStatusBar(statusBar);
         dockWidget = new QDockWidget(ImageViewerClass);
         dockWidget->setObjectName("dockWidget");
+        QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(dockWidget->sizePolicy().hasHeightForWidth());
+        dockWidget->setSizePolicy(sizePolicy);
+        dockWidget->setMinimumSize(QSize(255, 480));
         dockWidgetContents = new QWidget();
         dockWidgetContents->setObjectName("dockWidgetContents");
         verticalLayout = new QVBoxLayout(dockWidgetContents);
@@ -136,12 +149,22 @@ public:
         verticalLayout->setObjectName("verticalLayout");
         groupBox = new QGroupBox(dockWidgetContents);
         groupBox->setObjectName("groupBox");
+        QSizePolicy sizePolicy1(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        sizePolicy1.setHorizontalStretch(100);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(groupBox->sizePolicy().hasHeightForWidth());
+        groupBox->setSizePolicy(sizePolicy1);
         verticalLayout_2 = new QVBoxLayout(groupBox);
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setContentsMargins(11, 11, 11, 11);
         verticalLayout_2->setObjectName("verticalLayout_2");
         pushButtonSetColor = new QPushButton(groupBox);
         pushButtonSetColor->setObjectName("pushButtonSetColor");
+        QSizePolicy sizePolicy2(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        sizePolicy2.setHorizontalStretch(0);
+        sizePolicy2.setVerticalStretch(0);
+        sizePolicy2.setHeightForWidth(pushButtonSetColor->sizePolicy().hasHeightForWidth());
+        pushButtonSetColor->setSizePolicy(sizePolicy2);
 
         verticalLayout_2->addWidget(pushButtonSetColor);
 
@@ -150,47 +173,54 @@ public:
 
         pushButtonClear = new QPushButton(dockWidgetContents);
         pushButtonClear->setObjectName("pushButtonClear");
+        sizePolicy2.setHeightForWidth(pushButtonClear->sizePolicy().hasHeightForWidth());
+        pushButtonClear->setSizePolicy(sizePolicy2);
 
         verticalLayout->addWidget(pushButtonClear);
 
         groupBoxDraw = new QGroupBox(dockWidgetContents);
         groupBoxDraw->setObjectName("groupBoxDraw");
+        QSizePolicy sizePolicy3(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        sizePolicy3.setHorizontalStretch(0);
+        sizePolicy3.setVerticalStretch(0);
+        sizePolicy3.setHeightForWidth(groupBoxDraw->sizePolicy().hasHeightForWidth());
+        groupBoxDraw->setSizePolicy(sizePolicy3);
         gridLayout = new QGridLayout(groupBoxDraw);
         gridLayout->setSpacing(6);
         gridLayout->setContentsMargins(11, 11, 11, 11);
         gridLayout->setObjectName("gridLayout");
+        toolButtonDrawPolygon = new QToolButton(groupBoxDraw);
+        toolButtonDrawPolygon->setObjectName("toolButtonDrawPolygon");
+        toolButtonDrawPolygon->setCheckable(true);
+
+        gridLayout->addWidget(toolButtonDrawPolygon, 2, 2, 1, 1);
+
         comboBoxLineAlg = new QComboBox(groupBoxDraw);
         comboBoxLineAlg->addItem(QString());
         comboBoxLineAlg->addItem(QString());
         comboBoxLineAlg->setObjectName("comboBoxLineAlg");
 
-        gridLayout->addWidget(comboBoxLineAlg, 0, 0, 1, 3);
-
-        toolButtonDrawPolygon = new QToolButton(groupBoxDraw);
-        toolButtonDrawPolygon->setObjectName("toolButtonDrawPolygon");
-        toolButtonDrawPolygon->setCheckable(true);
-
-        gridLayout->addWidget(toolButtonDrawPolygon, 1, 2, 1, 1);
+        gridLayout->addWidget(comboBoxLineAlg, 1, 0, 1, 3);
 
         toolButtonDrawCircle = new QToolButton(groupBoxDraw);
         toolButtonDrawCircle->setObjectName("toolButtonDrawCircle");
-        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        sizePolicy.setHorizontalStretch(0);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(toolButtonDrawCircle->sizePolicy().hasHeightForWidth());
-        toolButtonDrawCircle->setSizePolicy(sizePolicy);
+        QSizePolicy sizePolicy4(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        sizePolicy4.setHorizontalStretch(0);
+        sizePolicy4.setVerticalStretch(0);
+        sizePolicy4.setHeightForWidth(toolButtonDrawCircle->sizePolicy().hasHeightForWidth());
+        toolButtonDrawCircle->setSizePolicy(sizePolicy4);
         toolButtonDrawCircle->setCheckable(true);
 
-        gridLayout->addWidget(toolButtonDrawCircle, 1, 1, 1, 1);
+        gridLayout->addWidget(toolButtonDrawCircle, 2, 1, 1, 1);
 
         toolButtonDrawLine = new QToolButton(groupBoxDraw);
         toolButtonDrawLine->setObjectName("toolButtonDrawLine");
-        sizePolicy.setHeightForWidth(toolButtonDrawLine->sizePolicy().hasHeightForWidth());
-        toolButtonDrawLine->setSizePolicy(sizePolicy);
+        sizePolicy4.setHeightForWidth(toolButtonDrawLine->sizePolicy().hasHeightForWidth());
+        toolButtonDrawLine->setSizePolicy(sizePolicy4);
         toolButtonDrawLine->setCheckable(true);
         toolButtonDrawLine->setAutoRepeatDelay(0);
 
-        gridLayout->addWidget(toolButtonDrawLine, 1, 0, 1, 1);
+        gridLayout->addWidget(toolButtonDrawLine, 2, 0, 1, 1);
 
 
         verticalLayout->addWidget(groupBoxDraw);
@@ -266,11 +296,11 @@ public:
 
         pushButtonScale = new QPushButton(groupBoxEdit);
         pushButtonScale->setObjectName("pushButtonScale");
-        QSizePolicy sizePolicy1(QSizePolicy::Minimum, QSizePolicy::Ignored);
-        sizePolicy1.setHorizontalStretch(0);
-        sizePolicy1.setVerticalStretch(0);
-        sizePolicy1.setHeightForWidth(pushButtonScale->sizePolicy().hasHeightForWidth());
-        pushButtonScale->setSizePolicy(sizePolicy1);
+        QSizePolicy sizePolicy5(QSizePolicy::Minimum, QSizePolicy::Ignored);
+        sizePolicy5.setHorizontalStretch(0);
+        sizePolicy5.setVerticalStretch(0);
+        sizePolicy5.setHeightForWidth(pushButtonScale->sizePolicy().hasHeightForWidth());
+        pushButtonScale->setSizePolicy(sizePolicy5);
 
         gridLayout_3->addWidget(pushButtonScale, 2, 0, 1, 1);
 
@@ -283,9 +313,6 @@ public:
 
         pushButtonRotate = new QPushButton(groupBoxEdit);
         pushButtonRotate->setObjectName("pushButtonRotate");
-        QSizePolicy sizePolicy2(QSizePolicy::Ignored, QSizePolicy::Fixed);
-        sizePolicy2.setHorizontalStretch(0);
-        sizePolicy2.setVerticalStretch(0);
         sizePolicy2.setHeightForWidth(pushButtonRotate->sizePolicy().hasHeightForWidth());
         pushButtonRotate->setSizePolicy(sizePolicy2);
         pushButtonRotate->setMaximumSize(QSize(100, 16777215));
@@ -298,6 +325,44 @@ public:
 
 
         verticalLayout->addWidget(groupBoxEdit);
+
+        groupBoxFill = new QGroupBox(dockWidgetContents);
+        groupBoxFill->setObjectName("groupBoxFill");
+        gridLayout_5 = new QGridLayout(groupBoxFill);
+        gridLayout_5->setSpacing(6);
+        gridLayout_5->setContentsMargins(11, 11, 11, 11);
+        gridLayout_5->setObjectName("gridLayout_5");
+        gridLayout_2 = new QGridLayout();
+        gridLayout_2->setSpacing(6);
+        gridLayout_2->setObjectName("gridLayout_2");
+        pushButtonColorA = new QPushButton(groupBoxFill);
+        pushButtonColorA->setObjectName("pushButtonColorA");
+
+        gridLayout_2->addWidget(pushButtonColorA, 1, 0, 1, 1);
+
+        pushButtonColorB = new QPushButton(groupBoxFill);
+        pushButtonColorB->setObjectName("pushButtonColorB");
+
+        gridLayout_2->addWidget(pushButtonColorB, 1, 1, 1, 1);
+
+        pushButtonColorC = new QPushButton(groupBoxFill);
+        pushButtonColorC->setObjectName("pushButtonColorC");
+
+        gridLayout_2->addWidget(pushButtonColorC, 1, 2, 1, 1);
+
+        comboBoxFillType = new QComboBox(groupBoxFill);
+        comboBoxFillType->addItem(QString());
+        comboBoxFillType->addItem(QString());
+        comboBoxFillType->addItem(QString());
+        comboBoxFillType->setObjectName("comboBoxFillType");
+
+        gridLayout_2->addWidget(comboBoxFillType, 0, 0, 1, 3);
+
+
+        gridLayout_5->addLayout(gridLayout_2, 0, 0, 1, 1);
+
+
+        verticalLayout->addWidget(groupBoxFill);
 
         verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
@@ -346,10 +411,10 @@ public:
         pushButtonSetColor->setText(QString());
         pushButtonClear->setText(QCoreApplication::translate("ImageViewerClass", "Clear", nullptr));
         groupBoxDraw->setTitle(QCoreApplication::translate("ImageViewerClass", "Draw", nullptr));
+        toolButtonDrawPolygon->setText(QCoreApplication::translate("ImageViewerClass", "Polygon", nullptr));
         comboBoxLineAlg->setItemText(0, QCoreApplication::translate("ImageViewerClass", "DDA", nullptr));
         comboBoxLineAlg->setItemText(1, QCoreApplication::translate("ImageViewerClass", "Bresenham", nullptr));
 
-        toolButtonDrawPolygon->setText(QCoreApplication::translate("ImageViewerClass", "Polygon", nullptr));
         toolButtonDrawCircle->setText(QCoreApplication::translate("ImageViewerClass", "Circle", nullptr));
         toolButtonDrawLine->setText(QCoreApplication::translate("ImageViewerClass", "Line", nullptr));
         groupBoxEdit->setTitle(QCoreApplication::translate("ImageViewerClass", "Edit", nullptr));
@@ -360,6 +425,11 @@ public:
         pushButtonScale->setText(QCoreApplication::translate("ImageViewerClass", "Scale", nullptr));
         label->setText(QCoreApplication::translate("ImageViewerClass", "Deg.", nullptr));
         pushButtonRotate->setText(QCoreApplication::translate("ImageViewerClass", "Rotate", nullptr));
+        groupBoxFill->setTitle(QCoreApplication::translate("ImageViewerClass", "Fill", nullptr));
+        comboBoxFillType->setItemText(0, QCoreApplication::translate("ImageViewerClass", "Solid color", nullptr));
+        comboBoxFillType->setItemText(1, QCoreApplication::translate("ImageViewerClass", "Nearest-neighbor", nullptr));
+        comboBoxFillType->setItemText(2, QCoreApplication::translate("ImageViewerClass", "Barycentric", nullptr));
+
     } // retranslateUi
 
 };
