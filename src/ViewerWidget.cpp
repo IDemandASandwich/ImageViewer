@@ -820,3 +820,18 @@ QColor ViewerWidget::barycentric(int x, int y, QVector<QPoint> T, QColor triangl
 
 	return QColor(r, g, b);
 }
+
+void ViewerWidget::drawCurve(QVector<QPoint> points, QColor color, int type) {
+	enum types { hermit, bezier, coons };
+	
+	switch (type){
+	case hermit:
+		drawHermitCubic(points, color);
+	}
+}
+void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color) {
+	for (qsizetype i = points.size() - 1; i >= 0; i--) {
+		QPoint temp;
+		object.insert(i + 1, temp);
+	}
+}

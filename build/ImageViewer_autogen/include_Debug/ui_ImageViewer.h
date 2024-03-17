@@ -61,9 +61,11 @@ public:
     QGroupBox *groupBoxDraw;
     QGridLayout *gridLayout;
     QToolButton *toolButtonDrawPolygon;
-    QComboBox *comboBoxLineAlg;
     QToolButton *toolButtonDrawCircle;
+    QToolButton *toolButtonDrawCurved;
     QToolButton *toolButtonDrawLine;
+    QComboBox *comboBoxLineAlg;
+    QComboBox *comboBoxCurvedType;
     QGroupBox *groupBoxEdit;
     QGridLayout *gridLayout_4;
     QGridLayout *gridLayout_3;
@@ -91,7 +93,7 @@ public:
     {
         if (ImageViewerClass->objectName().isEmpty())
             ImageViewerClass->setObjectName("ImageViewerClass");
-        ImageViewerClass->resize(801, 588);
+        ImageViewerClass->resize(797, 580);
         actionOpen = new QAction(ImageViewerClass);
         actionOpen->setObjectName("actionOpen");
         actionSave_as = new QAction(ImageViewerClass);
@@ -113,7 +115,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName("scrollAreaWidgetContents");
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 522, 513));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 518, 505));
         scrollArea->setWidget(scrollAreaWidgetContents);
 
         horizontalLayout->addWidget(scrollArea);
@@ -121,7 +123,7 @@ public:
         ImageViewerClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(ImageViewerClass);
         menuBar->setObjectName("menuBar");
-        menuBar->setGeometry(QRect(0, 0, 801, 22));
+        menuBar->setGeometry(QRect(0, 0, 797, 22));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName("menuFile");
         menuImage = new QMenu(menuBar);
@@ -140,7 +142,7 @@ public:
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(dockWidget->sizePolicy().hasHeightForWidth());
         dockWidget->setSizePolicy(sizePolicy);
-        dockWidget->setMinimumSize(QSize(255, 480));
+        dockWidget->setMinimumSize(QSize(255, 535));
         dockWidgetContents = new QWidget();
         dockWidgetContents->setObjectName("dockWidgetContents");
         verticalLayout = new QVBoxLayout(dockWidgetContents);
@@ -191,27 +193,30 @@ public:
         gridLayout->setObjectName("gridLayout");
         toolButtonDrawPolygon = new QToolButton(groupBoxDraw);
         toolButtonDrawPolygon->setObjectName("toolButtonDrawPolygon");
-        toolButtonDrawPolygon->setCheckable(true);
-
-        gridLayout->addWidget(toolButtonDrawPolygon, 2, 2, 1, 1);
-
-        comboBoxLineAlg = new QComboBox(groupBoxDraw);
-        comboBoxLineAlg->addItem(QString());
-        comboBoxLineAlg->addItem(QString());
-        comboBoxLineAlg->setObjectName("comboBoxLineAlg");
-
-        gridLayout->addWidget(comboBoxLineAlg, 1, 0, 1, 3);
-
-        toolButtonDrawCircle = new QToolButton(groupBoxDraw);
-        toolButtonDrawCircle->setObjectName("toolButtonDrawCircle");
         QSizePolicy sizePolicy4(QSizePolicy::Expanding, QSizePolicy::Fixed);
         sizePolicy4.setHorizontalStretch(0);
         sizePolicy4.setVerticalStretch(0);
+        sizePolicy4.setHeightForWidth(toolButtonDrawPolygon->sizePolicy().hasHeightForWidth());
+        toolButtonDrawPolygon->setSizePolicy(sizePolicy4);
+        toolButtonDrawPolygon->setCheckable(true);
+
+        gridLayout->addWidget(toolButtonDrawPolygon, 3, 2, 1, 1);
+
+        toolButtonDrawCircle = new QToolButton(groupBoxDraw);
+        toolButtonDrawCircle->setObjectName("toolButtonDrawCircle");
         sizePolicy4.setHeightForWidth(toolButtonDrawCircle->sizePolicy().hasHeightForWidth());
         toolButtonDrawCircle->setSizePolicy(sizePolicy4);
         toolButtonDrawCircle->setCheckable(true);
 
-        gridLayout->addWidget(toolButtonDrawCircle, 2, 1, 1, 1);
+        gridLayout->addWidget(toolButtonDrawCircle, 3, 1, 1, 1);
+
+        toolButtonDrawCurved = new QToolButton(groupBoxDraw);
+        toolButtonDrawCurved->setObjectName("toolButtonDrawCurved");
+        sizePolicy4.setHeightForWidth(toolButtonDrawCurved->sizePolicy().hasHeightForWidth());
+        toolButtonDrawCurved->setSizePolicy(sizePolicy4);
+        toolButtonDrawCurved->setCheckable(true);
+
+        gridLayout->addWidget(toolButtonDrawCurved, 4, 0, 1, 1);
 
         toolButtonDrawLine = new QToolButton(groupBoxDraw);
         toolButtonDrawLine->setObjectName("toolButtonDrawLine");
@@ -220,7 +225,27 @@ public:
         toolButtonDrawLine->setCheckable(true);
         toolButtonDrawLine->setAutoRepeatDelay(0);
 
-        gridLayout->addWidget(toolButtonDrawLine, 2, 0, 1, 1);
+        gridLayout->addWidget(toolButtonDrawLine, 3, 0, 1, 1);
+
+        comboBoxLineAlg = new QComboBox(groupBoxDraw);
+        comboBoxLineAlg->addItem(QString());
+        comboBoxLineAlg->addItem(QString());
+        comboBoxLineAlg->setObjectName("comboBoxLineAlg");
+
+        gridLayout->addWidget(comboBoxLineAlg, 1, 0, 1, 3);
+
+        comboBoxCurvedType = new QComboBox(groupBoxDraw);
+        comboBoxCurvedType->addItem(QString());
+        comboBoxCurvedType->addItem(QString());
+        comboBoxCurvedType->addItem(QString());
+        comboBoxCurvedType->setObjectName("comboBoxCurvedType");
+        QSizePolicy sizePolicy5(QSizePolicy::Preferred, QSizePolicy::Fixed);
+        sizePolicy5.setHorizontalStretch(0);
+        sizePolicy5.setVerticalStretch(0);
+        sizePolicy5.setHeightForWidth(comboBoxCurvedType->sizePolicy().hasHeightForWidth());
+        comboBoxCurvedType->setSizePolicy(sizePolicy5);
+
+        gridLayout->addWidget(comboBoxCurvedType, 2, 0, 1, 3);
 
 
         verticalLayout->addWidget(groupBoxDraw);
@@ -296,11 +321,11 @@ public:
 
         pushButtonScale = new QPushButton(groupBoxEdit);
         pushButtonScale->setObjectName("pushButtonScale");
-        QSizePolicy sizePolicy5(QSizePolicy::Minimum, QSizePolicy::Ignored);
-        sizePolicy5.setHorizontalStretch(0);
-        sizePolicy5.setVerticalStretch(0);
-        sizePolicy5.setHeightForWidth(pushButtonScale->sizePolicy().hasHeightForWidth());
-        pushButtonScale->setSizePolicy(sizePolicy5);
+        QSizePolicy sizePolicy6(QSizePolicy::Minimum, QSizePolicy::Ignored);
+        sizePolicy6.setHorizontalStretch(0);
+        sizePolicy6.setVerticalStretch(0);
+        sizePolicy6.setHeightForWidth(pushButtonScale->sizePolicy().hasHeightForWidth());
+        pushButtonScale->setSizePolicy(sizePolicy6);
 
         gridLayout_3->addWidget(pushButtonScale, 2, 0, 1, 1);
 
@@ -412,11 +437,16 @@ public:
         pushButtonClear->setText(QCoreApplication::translate("ImageViewerClass", "Clear", nullptr));
         groupBoxDraw->setTitle(QCoreApplication::translate("ImageViewerClass", "Draw", nullptr));
         toolButtonDrawPolygon->setText(QCoreApplication::translate("ImageViewerClass", "Polygon", nullptr));
+        toolButtonDrawCircle->setText(QCoreApplication::translate("ImageViewerClass", "Circle", nullptr));
+        toolButtonDrawCurved->setText(QCoreApplication::translate("ImageViewerClass", "Curved", nullptr));
+        toolButtonDrawLine->setText(QCoreApplication::translate("ImageViewerClass", "Line", nullptr));
         comboBoxLineAlg->setItemText(0, QCoreApplication::translate("ImageViewerClass", "DDA", nullptr));
         comboBoxLineAlg->setItemText(1, QCoreApplication::translate("ImageViewerClass", "Bresenham", nullptr));
 
-        toolButtonDrawCircle->setText(QCoreApplication::translate("ImageViewerClass", "Circle", nullptr));
-        toolButtonDrawLine->setText(QCoreApplication::translate("ImageViewerClass", "Line", nullptr));
+        comboBoxCurvedType->setItemText(0, QCoreApplication::translate("ImageViewerClass", "Hermit", nullptr));
+        comboBoxCurvedType->setItemText(1, QCoreApplication::translate("ImageViewerClass", "Bezier", nullptr));
+        comboBoxCurvedType->setItemText(2, QCoreApplication::translate("ImageViewerClass", "Coon", nullptr));
+
         groupBoxEdit->setTitle(QCoreApplication::translate("ImageViewerClass", "Edit", nullptr));
         pushButtonShear->setText(QCoreApplication::translate("ImageViewerClass", "Shear", nullptr));
         label_4->setText(QCoreApplication::translate("ImageViewerClass", "Fact.", nullptr));

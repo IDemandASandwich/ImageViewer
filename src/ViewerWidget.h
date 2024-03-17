@@ -11,7 +11,6 @@ private:
 	bool drawLineActivated = false;
 	QPoint drawLineBegin = QPoint(0, 0);
 
-	bool drawPolygonActivated = false;
 	bool moveActive = false;
 	bool moving = false;
 	bool showpoints = true;	//TODO: add on/off switch
@@ -45,9 +44,6 @@ public:
 	QPoint getDrawLineBegin() { return drawLineBegin; }
 	void setDrawLineActivated(bool state) { drawLineActivated = state; }
 	bool getDrawLineActivated() { return drawLineActivated; }
-
-	void setDrawPolygonActivated(bool state) { drawPolygonActivated = state; }
-	bool getDrawPolygonActivated() { return drawPolygonActivated; }
 
 	//Get/Set functions
 	uchar* getData() { return data; }
@@ -103,6 +99,9 @@ public:
 
 	QColor nearestNeighbor(int x, int y, QVector<QPoint> T, QColor triangleColor[3]);
 	QColor barycentric(int x, int y, QVector<QPoint> T, QColor triangleColor[3]);
+
+	void drawCurve(QVector<QPoint> points, QColor color, int type = 0);
+	void drawHermitCubic(QVector<QPoint> points, QColor color);
 
 public slots:
 	void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;

@@ -73,62 +73,61 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 	QMouseEvent* e = static_cast<QMouseEvent*>(event);
 	if (w->getMoveActive() == false)
 	{
-		if (e->button() == Qt::LeftButton && ui->toolButtonDrawLine->isChecked())
+		if (e->button() == Qt::LeftButton)
 		{
-			if (w->getDrawLineActivated()) {
-				w->addObjectPoint(e->pos());
-				w->drawLine(w->getDrawLineBegin(), e->pos(), globalColor, ui->comboBoxLineAlg->currentIndex());
-				w->setDrawLineActivated(false);
-				
-				enableButtons(false);
-				w->setMoveActive(true);
+			if(ui->toolButtonDrawLine->isChecked()){
+				if (w->getDrawLineActivated()) {
+					w->drawLine(w->getDrawLineBegin(), e->pos(), globalColor, ui->comboBoxLineAlg->currentIndex());
+					w->setDrawLineActivated(false);
+					w->setMoveActive(true);
+				}
+				else {
+					w->setDrawLineBegin(e->pos());
+					w->setDrawLineActivated(true);
+					w->update();
+				}
 			}
-			else {
-				w->addObjectPoint(e->pos());
-				w->setDrawLineBegin(e->pos());
-				w->setDrawLineActivated(true);
-				w->setPixel(e->pos().x(), e->pos().y(), globalColor);
+			else if (ui->toolButtonDrawCircle->isChecked()) {
+				if (w->getDrawLineActivated()) {
+					w->drawCircle(w->getDrawLineBegin(), e->pos(), globalColor);
+					w->setDrawLineActivated(false);
+					w->setMoveActive(true);
+				}
+				else {
+					w->setDrawLineBegin(e->pos());
+					w->setDrawLineActivated(true);
+					w->update();
+				}
+			}
+			else if (ui->toolButtonDrawPolygon->isChecked()) {
 				w->update();
 			}
-		}
-		else if (e->button() == Qt::LeftButton && ui->toolButtonDrawCircle->isChecked()) {
-			if (w->getDrawLineActivated()) {
-				w->addObjectPoint(e->pos());
-				w->drawCircle(w->getDrawLineBegin(), e->pos(), globalColor);
-				w->setDrawLineActivated(false);
+			else if (ui->toolButtonDrawCurved->isChecked()) {	//duplicate code left for possible future expansion
+				w->update();
+			}
 
-				enableButtons(false);
-				w->setMoveActive(true);
-			}
-			else {
-				w->addObjectPoint(e->pos());
-				w->setDrawLineBegin(e->pos());
-				w->setDrawLineActivated(true);
-				w->update();
-			}
-		}
-		else if (e->button() == Qt::LeftButton && ui->toolButtonDrawPolygon->isChecked()) {
 			w->addObjectPoint(e->pos());
-			w->setDrawPolygonActivated(true);
-			enableButtons(false);
-			w->setPixel(e->pos().x(), e->pos().y(), globalColor);
-			w->update();
+			w->setPixel(e->pos().x(), e->pos().y(), Qt::red);
 		}
-		else if (e->button() == Qt::RightButton && ui->toolButtonDrawPolygon->isChecked()) {
-			if (w->getDrawPolygonActivated()) {
-				w->drawPolygon(w->getObject(), globalColor, triangleColor,ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
-				w->setMoveActive(true);
+		else if (e->button() == Qt::RightButton) {
+			if(ui->toolButtonDrawPolygon->isChecked()){
+				w->drawPolygon(w->getObject(), globalColor, triangleColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 			}
+			if (ui->toolButtonDrawCurved->isChecked()) {
+				w->drawCurve(w->getObject(), globalColor, ui->comboBoxCurvedType->currentIndex());
+			}
+
+			w->setMoveActive(true);
 		}
 	}
 	else {
-		if (e->button() == Qt::LeftButton && w->getMoveActive()) {
+		if (e->button() == Qt::LeftButton) {
 			w->setMoving(true);
 			w->setOrigin(e->pos());
 		}
 	}
 
-	ui->groupBoxFill->setVisible(true);
+	ui->groupBoxFill->setVisible(ui->toolButtonDrawPolygon->isChecked());
 	ui->groupBoxEdit->setVisible(true);
 	ui->groupBoxDraw->setVisible(false);
 }
@@ -281,7 +280,6 @@ void ImageViewer::on_actionClear_triggered()
 	vW->clear();
 	vW->clearObjectPoints();
 	vW->setMoveActive(false);
-	enableButtons(true);
 }
 void ImageViewer::on_actionExit_triggered()
 {
@@ -330,7 +328,6 @@ void ImageViewer::on_pushButtonClear_clicked()
 	vW->clear();
 	vW->clearObjectPoints();
 	vW->setMoveActive(false);
-	enableButtons(true);
 
 	ui->groupBoxDraw->setVisible(true);
 	ui->groupBoxEdit->setVisible(false);
@@ -343,20 +340,19 @@ void ImageViewer::initializeButtonGroup()
 	buttonGroup->addButton(ui->toolButtonDrawLine);
 	buttonGroup->addButton(ui->toolButtonDrawPolygon);
 	buttonGroup->addButton(ui->toolButtonDrawCircle);
+	buttonGroup->addButton(ui->toolButtonDrawCurved);
 	buttonGroup->setExclusive(true);
 
 	ui->groupBoxEdit->setVisible(false);
 	ui->groupBoxFill->setVisible(false);
 
-	connect(ui->toolButtonDrawCircle, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setEnabled(false);	});
-	connect(ui->toolButtonDrawLine, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setEnabled(true);	});
-	connect(ui->toolButtonDrawPolygon, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setEnabled(true);	});
-}
-void ImageViewer::enableButtons(bool state) {
-	ui->comboBoxLineAlg->setEnabled(state);
-	ui->toolButtonDrawCircle->setEnabled(state);
-	ui->toolButtonDrawLine->setEnabled(state);
-	ui->toolButtonDrawPolygon->setEnabled(state);
+	ui->comboBoxLineAlg->setVisible(false);
+	ui->comboBoxCurvedType->setVisible(false);
+
+	connect(ui->toolButtonDrawCircle, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setVisible(false); ui->comboBoxCurvedType->setVisible(false);	});
+	connect(ui->toolButtonDrawLine, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setVisible(true);	ui->comboBoxCurvedType->setVisible(false); });
+	connect(ui->toolButtonDrawPolygon, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setVisible(true);	ui->comboBoxCurvedType->setVisible(false); });
+	connect(ui->toolButtonDrawCurved, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setVisible(false);	ui->comboBoxCurvedType->setVisible(true); });
 }
 
 void ImageViewer::on_pushButtonRotate_clicked() {

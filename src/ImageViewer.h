@@ -42,7 +42,6 @@ private:
 
 	//My functions
 	void initializeButtonGroup();
-	void enableButtons(bool state);
 
 private slots:
 	void on_actionOpen_triggered();
