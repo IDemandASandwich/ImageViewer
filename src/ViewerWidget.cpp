@@ -836,15 +836,16 @@ QColor ViewerWidget::barycentric(int x, int y, QVector<QPoint> T, QColor triangl
 	return QColor(r, g, b);
 }
 
-void ViewerWidget::drawCurve(QVector<QPoint> points, QColor color, int type) {
+void ViewerWidget::drawCurve(QVector<QPoint> points, QColor color, int type, int show) {
 	enum types { hermit, bezier, coons };
 	
 	switch (type){
 	case hermit:
-		drawHermitCubic(points, color);
+		drawHermitCubic(points, color, show);
 	}
 }
-void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color) {
+void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color, int show) {
+	enum addons { lines_points, lines, point, none };
 	double dt = 0.05;
 
 	if (moveActive == false) {
@@ -857,7 +858,13 @@ void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color) {
 	}
 
 	for (qsizetype i = 0; i < points.size(); i += 2) {
-		drawLine(points[i], points[i + 1], Qt::red, 0, true, true);
+		bool show_points = (show == lines_points || show == point);
+		QColor col = Qt::white;
+
+		if (show == lines || show == lines_points)
+			col = Qt::red;
+
+		drawLine(points[i], points[i + 1], col, 0, true, show_points);
 	}
 
 	for (qsizetype i = 2; i < points.size(); i += 2) {

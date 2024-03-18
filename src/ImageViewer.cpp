@@ -114,7 +114,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 				w->drawPolygon(w->getObject(), globalColor, triangleColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 			}
 			if (ui->toolButtonDrawCurved->isChecked()) {
-				w->drawCurve(w->getObject(), globalColor, ui->comboBoxCurvedType->currentIndex());
+				w->drawCurve(w->getObject(), globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
 			}
 
 			w->setMoveActive(true);
@@ -193,7 +193,7 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 			}
 
 			w->clear();
-			w->drawCurve(temp, globalColor, ui->comboBoxFillType->currentIndex());
+			w->drawCurve(temp, globalColor, ui->comboBoxFillType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
 		}
 	}
 }
@@ -371,11 +371,37 @@ void ImageViewer::initializeButtonGroup()
 
 	ui->comboBoxLineAlg->setVisible(false);
 	ui->comboBoxCurvedType->setVisible(false);
+	ui->comboBoxShowAddons->setVisible(false);
 
-	connect(ui->toolButtonDrawCircle, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setVisible(false); ui->comboBoxCurvedType->setVisible(false);	});
-	connect(ui->toolButtonDrawLine, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setVisible(true);	ui->comboBoxCurvedType->setVisible(false); });
-	connect(ui->toolButtonDrawPolygon, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setVisible(true);	ui->comboBoxCurvedType->setVisible(false); });
-	connect(ui->toolButtonDrawCurved, &QToolButton::clicked, [this]() {	ui->comboBoxLineAlg->setVisible(false);	ui->comboBoxCurvedType->setVisible(true); });
+	connect(ui->toolButtonDrawCircle, &QToolButton::clicked, [this]() {	
+		ui->comboBoxLineAlg->setVisible(false); 
+		ui->comboBoxCurvedType->setVisible(false);	
+		ui->comboBoxShowAddons->setVisible(false);
+
+	});
+	connect(ui->toolButtonDrawLine, &QToolButton::clicked, [this]() {	
+		ui->comboBoxLineAlg->setVisible(true);	
+		ui->comboBoxCurvedType->setVisible(false); 
+		ui->comboBoxShowAddons->setVisible(false);
+
+	});
+	connect(ui->toolButtonDrawPolygon, &QToolButton::clicked, [this]() {	
+		ui->comboBoxLineAlg->setVisible(true);	
+		ui->comboBoxCurvedType->setVisible(false);
+		ui->comboBoxShowAddons->setVisible(false);
+
+	});
+	connect(ui->toolButtonDrawCurved, &QToolButton::clicked, [this]() {	
+		ui->comboBoxLineAlg->setVisible(false);	
+		ui->comboBoxCurvedType->setVisible(true); 
+		ui->comboBoxShowAddons->setVisible(true);
+
+	});
+
+	connect(ui->comboBoxShowAddons, &QComboBox::currentIndexChanged, [this]() {
+		vW->clear();
+		vW->drawCurve(vW->getObject(), globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
+	});
 }
 
 void ImageViewer::on_pushButtonRotate_clicked() {

@@ -102,8 +102,8 @@ public:
 	QColor nearestNeighbor(int x, int y, QVector<QPoint> T, QColor triangleColor[3]);
 	QColor barycentric(int x, int y, QVector<QPoint> T, QColor triangleColor[3]);
 
-	void drawCurve(QVector<QPoint> points, QColor color, int type = 0);
-	void drawHermitCubic(QVector<QPoint> points, QColor color);
+	void drawCurve(QVector<QPoint> points, QColor color, int type = 0, int show = 0);
+	void drawHermitCubic(QVector<QPoint> points, QColor color, int show);
 
 public slots:
 	void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
