@@ -233,6 +233,21 @@ void ViewerWidget::showPoints(QVector<QPoint> obj) {
 		drawCircle(p, 3, Qt::red);
 	}
 }
+int ViewerWidget::getClosestPointIndex(QPoint P) {
+	int n = 0;
+	double d1 = abs(object[0].y() - P.y()) + abs(object[0].x() - P.x());
+
+	for (qsizetype i = 1; i < object.size(); i++) {
+		double d2 = abs(object[i].y() - P.y()) + abs(object[i].x() - P.x());
+
+		if (d2 < d1) {
+			d1 = d2;
+			n = i;
+		}
+	}
+
+	return n;
+}
 
 void ViewerWidget::clear()
 {
@@ -830,8 +845,42 @@ void ViewerWidget::drawCurve(QVector<QPoint> points, QColor color, int type) {
 	}
 }
 void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color) {
-	for (qsizetype i = points.size() - 1; i >= 0; i--) {
-		QPoint temp;
-		object.insert(i + 1, temp);
+	double dt = 0.05;
+
+	if (moveActive == false) {
+		for (qsizetype i = points.size() - 1; i >= 0; i--) {	//point1, vectorEnd1, point2, vectorEnd2...
+			QPoint temp(points[i].x(), points[i].y() - 100);
+			object.insert(i + 1, temp);
+		}
+
+		points = object;
+	}
+
+	for (qsizetype i = 0; i < points.size(); i += 2) {
+		drawLine(points[i], points[i + 1], Qt::red, 0, true, true);
+	}
+
+	for (qsizetype i = 2; i < points.size(); i += 2) {
+		QPoint Q0 = points[i - 2];
+		double t = dt;
+
+		while(t < 1.0){
+			double F0 = 2 * pow(t, 3) - 3 * pow(t, 2) + 1;
+			double F1 = -2 * pow(t, 3) + 3 * pow(t, 2);
+			double F2 = pow(t, 3) - 2 * pow(t, 2) + t;
+			double F3 = pow(t, 3) - pow(t, 2);
+
+			QPoint P0 = points[i - 2];
+			QPoint T0 = P0 - points[i - 1];
+			QPoint P1 = points[i];
+			QPoint T1 = P1 - points[i + 1];
+
+			QPoint Q1(P0 * F0 + P1 * F1 + T0 * F2 + T1 * F3);
+			drawLine(Q0, Q1, color);
+			Q0 = Q1;
+			t += dt;
+		}
+
+		drawLine(Q0, points[i], color);
 	}
 }

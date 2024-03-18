@@ -20,6 +20,7 @@ private:
 	QColor triangleColor[3];	//Leads to passing unnecessary variables, too bad!
 	QSettings settings;
 	QMessageBox msgBox;
+	int currentPointIndex;
 
 	//Event filters
 	bool eventFilter(QObject* obj, QEvent* event);

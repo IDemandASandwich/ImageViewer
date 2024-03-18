@@ -122,13 +122,14 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 	}
 	else {
 		if (e->button() == Qt::LeftButton) {
+			currentPointIndex = w->getClosestPointIndex(e->pos());
 			w->setMoving(true);
 			w->setOrigin(e->pos());
 		}
 	}
 
 	ui->groupBoxFill->setVisible(ui->toolButtonDrawPolygon->isChecked());
-	ui->groupBoxEdit->setVisible(true);
+	ui->groupBoxEdit->setVisible(ui->toolButtonDrawCurved->isChecked() == false);
 	ui->groupBoxDraw->setVisible(false);
 }
 void ImageViewer::ViewerWidgetMouseButtonRelease(ViewerWidget* w, QEvent* event)
@@ -140,9 +141,21 @@ void ImageViewer::ViewerWidgetMouseButtonRelease(ViewerWidget* w, QEvent* event)
 
 		QPoint move = e->pos() - w->getOrigin();
 		
-		for (int i = 0; i < w->objectSize(); i++) {
-			QPoint point = w->getObjectPoint(i);
-			w->changeObjectPoint(i, point + move);
+		if (ui->toolButtonDrawCurved->isChecked()) {
+			QPoint p1 = w->getObjectPoint(currentPointIndex);
+
+			if (currentPointIndex % 2 == 0) {
+				QPoint p2 = w->getObjectPoint(currentPointIndex + 1);
+				w->changeObjectPoint(currentPointIndex + 1, p2 + move);
+			}
+
+			w->changeObjectPoint(currentPointIndex, p1 + move);
+		}
+		else {
+			for (int i = 0; i < w->objectSize(); i++) {
+				QPoint p = w->getObjectPoint(i);
+				w->changeObjectPoint(i, p + move);
+			}
 		}
 	}
 }
@@ -151,18 +164,17 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 	QMouseEvent* e = static_cast<QMouseEvent*>(event);
 
 	if (w->getMoving()) {
+		QPoint move = e->pos() - w->getOrigin();
+
 		if (ui->toolButtonDrawLine->isChecked()) {
-			QPoint move = e->pos() - w->getOrigin();
 			w->clear();
 			w->drawLine(w->getObject().at(0) + move, w->getObject().at(1) + move, globalColor, ui->comboBoxLineAlg->currentIndex());
 		}
 		else if (ui->toolButtonDrawCircle->isChecked()) {
-			QPoint move = e->pos() - w->getOrigin();
 			w->clear();
 			w->drawCircle(w->getObject().at(0) + move, w->getObject().at(1) + move, globalColor);
 		}
 		else if (ui->toolButtonDrawPolygon->isChecked()) {
-			QPoint move = e->pos() - w->getOrigin();
 			QVector<QPoint> temp = w->getObject();
 
 			for (int i = 0; i < temp.size(); i++) {
@@ -171,6 +183,17 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 
 			w->clear();
 			w->drawPolygon(temp, globalColor, triangleColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
+		}
+		else if (ui->toolButtonDrawCurved->isChecked()) {
+			QVector<QPoint> temp = w->getObject();
+			temp[currentPointIndex] += move;
+
+			if (currentPointIndex % 2 == 0) {
+				temp[currentPointIndex + 1] += move;
+			}
+
+			w->clear();
+			w->drawCurve(temp, globalColor, ui->comboBoxFillType->currentIndex());
 		}
 	}
 }

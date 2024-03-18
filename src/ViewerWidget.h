@@ -72,6 +72,8 @@ public:
 	void setOrigin(QPoint point) { origin = point; }
 	QPoint getOrigin() { return origin; }
 
+	int getClosestPointIndex(QPoint P);
+
 	//My functions
 	void DDA(QPoint start, QPoint end, QColor color);
 	void Bresenham(QPoint start, QPoint end, QColor color);
