@@ -842,6 +842,10 @@ void ViewerWidget::drawCurve(QVector<QPoint> points, QColor color, int type, int
 	switch (type){
 	case hermit:
 		drawHermitCubic(points, color, show);
+		break;
+	case bezier:
+		drawCasteljauAlg(points, color, show);
+		break;
 	}
 }
 void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color, int show) {
@@ -890,4 +894,37 @@ void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color, int sho
 
 		drawLine(Q0, points[i], color);
 	}
+}
+void ViewerWidget::drawCasteljauAlg(QVector<QPoint> points, QColor color, int show) {
+	enum addons { lines_points, lines, point, none };
+
+	qsizetype n = points.size();
+	QVector<QVector<QPoint>> P(n);
+	double dt = 0.05;
+	double t = dt;
+	QPoint Q0 = points[0];
+	QPoint Q1;
+
+	for (qsizetype i = 0; i < n; i++) {
+		P[i].resize(n - i);
+		P[0][i] = points[i];
+	}
+	
+	while (t < 1) {
+		for (qsizetype i = 1; i < n; i++) {
+			for (qsizetype j = 0; j < n - i; j++) {
+				P[i][j] = (1 - t) * P[i - 1][j] + t * P[i - 1][j + 1];
+			}
+		}
+		
+		Q1 = P[n - 1][0];
+		drawLine(Q0, Q1, color);
+		Q0 = Q1;
+		t += dt;
+	}
+
+	if(show != none)
+		showPoints(points);
+
+	drawLine(Q0, points[n - 1], color);
 }

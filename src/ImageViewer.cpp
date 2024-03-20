@@ -144,7 +144,7 @@ void ImageViewer::ViewerWidgetMouseButtonRelease(ViewerWidget* w, QEvent* event)
 		if (ui->toolButtonDrawCurved->isChecked()) {
 			QPoint p1 = w->getObjectPoint(currentPointIndex);
 
-			if (currentPointIndex % 2 == 0) {
+			if (currentPointIndex % 2 == 0 && ui->comboBoxCurvedType->currentIndex() == 0) {
 				QPoint p2 = w->getObjectPoint(currentPointIndex + 1);
 				w->changeObjectPoint(currentPointIndex + 1, p2 + move);
 			}
@@ -188,12 +188,12 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 			QVector<QPoint> temp = w->getObject();
 			temp[currentPointIndex] += move;
 
-			if (currentPointIndex % 2 == 0) {
+			if ((ui->comboBoxCurvedType->currentIndex() == 0) && (currentPointIndex%2 == 0)) {
 				temp[currentPointIndex + 1] += move;
 			}
 
 			w->clear();
-			w->drawCurve(temp, globalColor, ui->comboBoxFillType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
+			w->drawCurve(temp, globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
 		}
 	}
 }
