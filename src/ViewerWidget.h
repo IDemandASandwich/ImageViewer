@@ -105,6 +105,7 @@ public:
 	void drawCurve(QVector<QPoint> points, QColor color, int type = 0, int show = 0);
 	void drawHermitCubic(QVector<QPoint> points, QColor color, int show);
 	void drawCasteljauAlg(QVector<QPoint> points, QColor color, int show);
+	void drawCoonsCubic(QVector<QPoint> points, QColor color, int show);
 
 public slots:
 	void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;

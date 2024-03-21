@@ -87,13 +87,14 @@ public:
     QPushButton *pushButtonSetColorB;
     QPushButton *pushButtonSetColorC;
     QComboBox *comboBoxFillType;
+    QComboBox *comboBoxShowAddons;
     QSpacerItem *verticalSpacer;
 
     void setupUi(QMainWindow *ImageViewerClass)
     {
         if (ImageViewerClass->objectName().isEmpty())
             ImageViewerClass->setObjectName("ImageViewerClass");
-        ImageViewerClass->resize(797, 580);
+        ImageViewerClass->resize(789, 609);
         actionOpen = new QAction(ImageViewerClass);
         actionOpen->setObjectName("actionOpen");
         actionSave_as = new QAction(ImageViewerClass);
@@ -115,7 +116,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName("scrollAreaWidgetContents");
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 518, 505));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 510, 534));
         scrollArea->setWidget(scrollAreaWidgetContents);
 
         horizontalLayout->addWidget(scrollArea);
@@ -123,7 +124,7 @@ public:
         ImageViewerClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(ImageViewerClass);
         menuBar->setObjectName("menuBar");
-        menuBar->setGeometry(QRect(0, 0, 797, 22));
+        menuBar->setGeometry(QRect(0, 0, 789, 22));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName("menuFile");
         menuImage = new QMenu(menuBar);
@@ -142,7 +143,7 @@ public:
         sizePolicy.setVerticalStretch(0);
         sizePolicy.setHeightForWidth(dockWidget->sizePolicy().hasHeightForWidth());
         dockWidget->setSizePolicy(sizePolicy);
-        dockWidget->setMinimumSize(QSize(255, 535));
+        dockWidget->setMinimumSize(QSize(255, 562));
         dockWidgetContents = new QWidget();
         dockWidgetContents->setObjectName("dockWidgetContents");
         verticalLayout = new QVBoxLayout(dockWidgetContents);
@@ -389,6 +390,15 @@ public:
 
         verticalLayout->addWidget(groupBoxFill);
 
+        comboBoxShowAddons = new QComboBox(dockWidgetContents);
+        comboBoxShowAddons->addItem(QString());
+        comboBoxShowAddons->addItem(QString());
+        comboBoxShowAddons->addItem(QString());
+        comboBoxShowAddons->addItem(QString());
+        comboBoxShowAddons->setObjectName("comboBoxShowAddons");
+
+        verticalLayout->addWidget(comboBoxShowAddons);
+
         verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
         verticalLayout->addItem(verticalSpacer);
@@ -459,6 +469,11 @@ public:
         comboBoxFillType->setItemText(0, QCoreApplication::translate("ImageViewerClass", "Solid color", nullptr));
         comboBoxFillType->setItemText(1, QCoreApplication::translate("ImageViewerClass", "Nearest-neighbor", nullptr));
         comboBoxFillType->setItemText(2, QCoreApplication::translate("ImageViewerClass", "Barycentric", nullptr));
+
+        comboBoxShowAddons->setItemText(0, QCoreApplication::translate("ImageViewerClass", "Lines + points", nullptr));
+        comboBoxShowAddons->setItemText(1, QCoreApplication::translate("ImageViewerClass", "Lines", nullptr));
+        comboBoxShowAddons->setItemText(2, QCoreApplication::translate("ImageViewerClass", "Points", nullptr));
+        comboBoxShowAddons->setItemText(3, QCoreApplication::translate("ImageViewerClass", "None", nullptr));
 
     } // retranslateUi
 

@@ -846,6 +846,9 @@ void ViewerWidget::drawCurve(QVector<QPoint> points, QColor color, int type, int
 	case bezier:
 		drawCasteljauAlg(points, color, show);
 		break;
+	case coons:
+		drawCoonsCubic(points, color, show);
+		break;
 	}
 }
 void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color, int show) {
@@ -927,4 +930,31 @@ void ViewerWidget::drawCasteljauAlg(QVector<QPoint> points, QColor color, int sh
 		showPoints(points);
 
 	drawLine(Q0, points[n - 1], color);
+}
+void ViewerWidget::drawCoonsCubic(QVector<QPoint> points, QColor color, int show) {
+	enum addons { lines_points, lines, point, none };
+	double dt = 0.05;
+	double t = 0;
+	QPoint Q0, Q1;
+	qsizetype n = points.size();
+
+	auto B0 = [](double t) { return (-(1 / 6.) * pow(t, 3) + 0.5 * pow(t, 2) - 0.5 * t + 1 / 6.); };
+	auto B1 = [](double t) { return(0.5 * pow(t, 3) - pow(t, 2) + 2 / 3.); };
+	auto B2 = [](double t) { return(-0.5 * pow(t, 3) + 0.5 * pow(t, 2) + 0.5 * t + 1 / 6.); };
+	auto B3 = [](double t) { return((1 / 6.) * pow(t, 3)); };
+
+	for (qsizetype i = 3; i < n; i++) {
+		t = 0;
+		Q0 = points[i - 3] * B0(0) + points[i - 2] * B1(0) + points[i - 1] * B2(0) + points[i] * B3(0);
+
+		while (t < 1) {
+			t += dt;
+			Q1 = points[i - 3] * B0(t) + points[i - 2] * B1(t) + points[i - 1] * B2(t) + points[i] * B3(t);
+			drawLine(Q0, Q1, color);
+			Q0 = Q1;
+		}
+	}
+
+	if (show != none)
+		showPoints(points);
 }
