@@ -631,6 +631,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </None>
     <ClInclude Include="C:\Users\cyfra\Desktop\School\year_2\semester_4\computer-graphics\ImageViewer_cv2\src\ImageViewer.h" />
     <ClInclude Include="C:\Users\cyfra\Desktop\School\year_2\semester_4\computer-graphics\ImageViewer_cv2\src\ViewerWidget.h" />
+    <ClInclude Include="C:\Users\cyfra\Desktop\School\year_2\semester_4\computer-graphics\ImageViewer_cv2\src\halfEdge.h" />
+    <ClInclude Include="C:\Users\cyfra\Desktop\School\year_2\semester_4\computer-graphics\ImageViewer_cv2\src\wingedEdge.h" />
     <None Include="C:\Users\cyfra\Desktop\School\year_2\semester_4\computer-graphics\ImageViewer_cv2\src\ImageViewer.qrc">
     </None>
     <ClInclude Include="C:\Users\cyfra\Desktop\School\year_2\semester_4\computer-graphics\ImageViewer_cv2\build\ImageViewer_autogen\include_Debug\src\ui_ImageViewer.h" />

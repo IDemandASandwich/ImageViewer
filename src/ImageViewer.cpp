@@ -1,5 +1,6 @@
 #include "ImageViewer.h"
 
+
 ImageViewer::ImageViewer(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::ImageViewerClass)
 {
@@ -453,4 +454,23 @@ void ImageViewer::on_pushButtonShear_clicked() {
 		type = polygon;
 
 	vW->shearObjectDx(type, globalColor, triangleColor, ui->doubleSpinBoxScaleX->value(), ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
+}
+
+void ImageViewer::on_pushButtonCube_clicked() {
+	QVector<QVector3D> cube;
+
+	int l = ui->spinBoxCubeSideLength->value();
+
+	QVector3D v0(0 ,0 ,0 );
+	QVector3D v1(l ,0 ,0 );
+	QVector3D v2(l ,l ,0 );
+	QVector3D v3(0 ,l ,0 );
+	QVector3D v4(0 ,0 ,l );
+	QVector3D v5(l ,0 ,l );
+	QVector3D v6(l ,l ,l );
+	QVector3D v7(0 ,l ,l );
+
+	cube << v0 << v1 << v2 << v3 << v4 << v5 << v6 << v7;
+
+	vW->createObjectCube2(cube);
 }

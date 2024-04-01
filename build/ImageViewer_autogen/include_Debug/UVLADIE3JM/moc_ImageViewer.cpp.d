@@ -523,4 +523,5 @@ C:/Users/cyfra/Desktop/School/year_2/semester_4/computer-graphics/ImageViewer_cv
   C:/Qt/6.6.0/msvc2019_64/include/QtWidgets/qwidget.h \
   C:/Qt/6.6.0/msvc2019_64/include/QtWidgets/qwidgetaction.h \
   C:/Qt/6.6.0/msvc2019_64/include/QtWidgets/qwizard.h \
-  C:/Users/cyfra/Desktop/School/year_2/semester_4/computer-graphics/ImageViewer_cv2/src/ViewerWidget.h
+  C:/Users/cyfra/Desktop/School/year_2/semester_4/computer-graphics/ImageViewer_cv2/src/ViewerWidget.h \
+  C:/Users/cyfra/Desktop/School/year_2/semester_4/computer-graphics/ImageViewer_cv2/src/halfEdge.h

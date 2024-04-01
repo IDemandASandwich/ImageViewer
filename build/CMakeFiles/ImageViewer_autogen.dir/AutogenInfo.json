@@ -252,6 +252,18 @@
 			"MU",
 			"UVLADIE3JM/moc_ViewerWidget.cpp",
 			null
+		],
+		[
+			"C:/Users/cyfra/Desktop/School/year_2/semester_4/computer-graphics/ImageViewer_cv2/src/halfEdge.h",
+			"MU",
+			"UVLADIE3JM/moc_halfEdge.cpp",
+			null
+		],
+		[
+			"C:/Users/cyfra/Desktop/School/year_2/semester_4/computer-graphics/ImageViewer_cv2/src/wingedEdge.h",
+			"MU",
+			"UVLADIE3JM/moc_wingedEdge.cpp",
+			null
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],

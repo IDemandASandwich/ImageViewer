@@ -16,11 +16,15 @@ private:
 	Ui::ImageViewerClass* ui;
 	ViewerWidget* vW;
 
+#pragma region 2D
+
 	QColor globalColor;
 	QColor triangleColor[3];	//Leads to passing unnecessary variables, too bad!
 	QSettings settings;
 	QMessageBox msgBox;
 	int currentPointIndex;
+
+#pragma endregion
 
 	//Event filters
 	bool eventFilter(QObject* obj, QEvent* event);
@@ -61,4 +65,6 @@ private slots:
 	void on_pushButtonScale_clicked();
 	void on_pushButtonMirror_clicked();
 	void on_pushButtonShear_clicked();
+
+	void on_pushButtonCube_clicked();
 };

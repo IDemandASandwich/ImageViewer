@@ -25,6 +25,8 @@ void ViewerWidget::resizeWidget(QSize size)
 	this->setMaximumSize(size);
 }
 
+#pragma region 2D
+
 //Image functions
 bool ViewerWidget::setImage(const QImage& inputImg)
 {
@@ -958,3 +960,147 @@ void ViewerWidget::drawCoonsCubic(QVector<QPoint> points, QColor color, int show
 	if (show != none)
 		showPoints(points);
 }
+
+#pragma endregion
+#pragma region 3D
+
+void ViewerWidget::createObjectCube(QVector<QVector3D> V) {
+	// Clear previous data
+	if (!vertexes.isEmpty()) { vertexes.clear(); }
+	if (!edges.isEmpty()) { edges.clear(); }
+	if (!edges.isEmpty()) { edges.clear(); }
+
+	// Define vertices and initialize edges
+	for (int i = 0; i < 8; ++i) {
+		vertexes.append(Vertex());
+		vertexes[i].set(V[i], nullptr); // Initialize vertices with positions
+	}
+
+	// Define edges
+	for (int i = 0; i < 8; ++i) {
+		int j = (i + 1) % 4;
+		edges.append(H_edge());
+		edges[i].set(&vertexes[i], nullptr, nullptr, nullptr, nullptr); // Initialize edges with origin vertex
+		edges[i + 4].set(&vertexes[j], nullptr, nullptr, nullptr, nullptr); // Initialize diagonal edges
+	}
+
+	// Define faces
+	for (int i = 0; i < 6; ++i) {
+		faces.append(Face());
+	}
+
+	// Define face-edge relationships
+	for (int i = 0; i < 6; ++i) {
+		int startVertexIndex = (i / 2) * 4; // Start index of vertices for this face
+		QVector<H_edge*> faceEdges;
+		for (int j = 0; j < 4; ++j) {
+			int edgeIndex = (i % 2) * 4 + j; // Start index of edges for this face
+			faceEdges.append(&edges[startVertexIndex + j]); // Add outer edges
+			faceEdges.append(&edges[edgeIndex]); // Add diagonal edges
+			edges[edgeIndex].face = &faces[i]; // Assign face to diagonal edges
+		}
+		faces[i].edge = faceEdges[0]; // Assign the first edge of the face
+	}
+
+	// Define edge connections
+	for (int i = 0; i < 8; ++i) {
+		int nextIndex = (i + 1) % 4;
+		edges[i].edge_next = &edges[i + 4];
+		edges[i + 4].edge_prev = &edges[i];
+		edges[i].pair = &edges[nextIndex + 4];
+		edges[nextIndex + 4].pair = &edges[i];
+	}
+}
+void ViewerWidget::createObjectCube2(QVector<QVector3D> V) {
+	vertexes.resize(8);
+	edges.resize(36);
+	faces.resize(12);
+	
+	int n = 0;
+	for (int i = 0; i < 12; i++) {
+		faces[i].edge = &edges[n];
+		n += 3;
+	}
+
+	vertexes[0].set(V[0], &edges[0]);
+	vertexes[1].set(V[1], &edges[6]);
+	vertexes[2].set(V[2], &edges[12]);
+	vertexes[3].set(V[3], &edges[19]);
+	vertexes[4].set(V[4], &edges[30]);
+	vertexes[5].set(V[5], &edges[34]);
+	vertexes[6].set(V[6], &edges[35]);
+	vertexes[7].set(V[7], &edges[32]);
+
+	edges[0].set(&vertexes[0], &faces[0], &edges[1], &edges[2], &edges[26]);
+	edges[1].set(&vertexes[1], &faces[0], &edges[2], &edges[0], &edges[5]);
+	edges[2].set(&vertexes[4], &faces[0], &edges[0], &edges[1], &edges[22]);
+	edges[3].set(&vertexes[1], &faces[1], &edges[4], &edges[5], &edges[8]);
+	edges[4].set(&vertexes[5], &faces[1], &edges[5], &edges[3], &edges[30]);
+	edges[5].set(&vertexes[4], &faces[1], &edges[3], &edges[4], &edges[1]);
+	edges[6].set(&vertexes[1], &faces[2], &edges[7], &edges[8], &edges[29]);
+	edges[7].set(&vertexes[2], &faces[2], &edges[8], &edges[6], &edges[11]);
+	edges[8].set(&vertexes[5], &faces[2], &edges[6], &edges[7], &edges[3]);
+	edges[9].set(&vertexes[2], &faces[3], &edges[10], &edges[11], &edges[14]);
+	edges[10].set(&vertexes[6], &faces[3], &edges[11], &edges[9], &edges[34]);
+	edges[11].set(&vertexes[5], &faces[3], &edges[9], &edges[10], &edges[4]);
+	edges[12].set(&vertexes[2], &faces[4], &edges[13], &edges[14], &edges[28]);
+	edges[13].set(&vertexes[3], &faces[4], &edges[14], &edges[12], &edges[15]);
+	edges[14].set(&vertexes[6], &faces[4], &edges[12], &edges[13], &edges[9]);
+	edges[15].set(&vertexes[6], &faces[5], &edges[16], &edges[17], &edges[13]);
+	edges[16].set(&vertexes[3], &faces[5], &edges[17], &edges[15], &edges[18]);
+	edges[17].set(&vertexes[7], &faces[5], &edges[15], &edges[16], &edges[35]);
+	edges[18].set(&vertexes[7], &faces[6], &edges[19], &edges[20], &edges[16]);
+	edges[19].set(&vertexes[3], &faces[6], &edges[20], &edges[18], &edges[34]);
+	edges[20].set(&vertexes[0], &faces[6], &edges[18], &edges[19], &edges[21]);
+	edges[21].set(&vertexes[7], &faces[7], &edges[22], &edges[23], &edges[20]);
+	edges[22].set(&vertexes[0], &faces[7], &edges[23], &edges[21], &edges[2]);
+	edges[23].set(&vertexes[4], &faces[7], &edges[21], &edges[22], &edges[32]);
+	edges[24].set(&vertexes[0], &faces[8], &edges[25], &edges[26], &edges[19]);
+	edges[25].set(&vertexes[3], &faces[8], &edges[26], &edges[24], &edges[27]);
+	edges[26].set(&vertexes[1], &faces[8], &edges[24], &edges[25], &edges[0]);
+	edges[27].set(&vertexes[1], &faces[9], &edges[28], &edges[29], &edges[25]);
+	edges[28].set(&vertexes[3], &faces[9], &edges[29], &edges[27], &edges[12]);
+	edges[29].set(&vertexes[2], &faces[9], &edges[27], &edges[28], &edges[6]);
+	edges[30].set(&vertexes[4], &faces[10], &edges[31], &edges[32], &edges[4]);
+	edges[31].set(&vertexes[5], &faces[10], &edges[32], &edges[30], &edges[33]);
+	edges[32].set(&vertexes[7], &faces[10], &edges[30], &edges[31], &edges[23]);
+	edges[33].set(&vertexes[7], &faces[11], &edges[34], &edges[35], &edges[31]);
+	edges[34].set(&vertexes[5], &faces[11], &edges[35], &edges[33], &edges[10]);
+	edges[35].set(&vertexes[6], &faces[11], &edges[33], &edges[34], &edges[17]);
+
+	saveCube("cube.vtk");
+}
+
+void ViewerWidget::saveObject(QString filename){
+	saveCube(filename);
+}
+void ViewerWidget::saveCube(QString filename) {
+	QFile file("../output/" + filename);
+
+	if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+		QTextStream out(&file);
+
+		out << "# vtk DataFile Version 3.0\nvtk output\nASCII\nDATASET POLYDATA\nPOINTS " << vertexes.size() << " float\n";
+		for (Vertex& vertex : vertexes) {
+			out << vertex.x << " " << vertex.y << " " << vertex.z << "\n";
+		}
+
+		out << "LINES " << edges.size() << " " << 3 * edges.size() << "\n";
+		for (H_edge& edge : edges) {
+			out << "2 " << vertexes.indexOf(*edge.vert_origin) << " " << vertexes.indexOf(*edge.edge_next->vert_origin) << "\n";
+		}
+
+		out << "POLYGONS " << faces.size() << " " << 4 * faces.size() << "\n";
+		for (Face& face : faces) {
+			out << "3 " << vertexes.indexOf(*face.edge->vert_origin) << " " << vertexes.indexOf(*face.edge->edge_next->vert_origin) << " " << vertexes.indexOf(*face.edge->edge_next->edge_next->vert_origin) << "\n";
+		}
+
+		file.close();
+	}
+	else {
+		qDebug() << "error opening file saveCube!";
+	}
+}
+
+
+#pragma endregion

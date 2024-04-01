@@ -1,8 +1,12 @@
 #pragma once
 #include <QtWidgets>
+#include "halfEdge.h"
+
 class ViewerWidget :public QWidget {
 	Q_OBJECT
 private:
+#pragma region 2D
+
 	QSize areaSize = QSize(0, 0);
 	QImage* img = nullptr;
 	QPainter* painter = nullptr;
@@ -21,11 +25,21 @@ private:
 
 	enum types { line, circle, polygon };
 
+#pragma endregion
+#pragma region 3D
+
+	QVector<H_edge> edges;
+	QVector<Face> faces;
+	QVector<Vertex> vertexes;
+
+#pragma endregion
+
 public:
 	ViewerWidget(QSize imgSize, QWidget* parent = Q_NULLPTR);
 	~ViewerWidget();
 	void resizeWidget(QSize size);
 
+#pragma region 2D
 	//Image functions
 	bool setImage(const QImage& inputImg);
 	QImage* getImage() { return img; };
@@ -106,6 +120,15 @@ public:
 	void drawHermitCubic(QVector<QPoint> points, QColor color, int show);
 	void drawCasteljauAlg(QVector<QPoint> points, QColor color, int show);
 	void drawCoonsCubic(QVector<QPoint> points, QColor color, int show);
+#pragma endregion
+#pragma region 3D
+	
+	void createObjectCube(QVector<QVector3D> V);
+	void createObjectCube2(QVector<QVector3D> V);
+	void saveObject(QString filename);
+	void saveCube(QString filename);
+
+#pragma endregion
 
 public slots:
 	void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE;
