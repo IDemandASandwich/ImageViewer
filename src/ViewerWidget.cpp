@@ -964,55 +964,8 @@ void ViewerWidget::drawCoonsCubic(QVector<QPoint> points, QColor color, int show
 #pragma endregion
 #pragma region 3D
 
-void ViewerWidget::createObjectCube(QVector<QVector3D> V) {
-	// Clear previous data
-	if (!vertexes.isEmpty()) { vertexes.clear(); }
-	if (!edges.isEmpty()) { edges.clear(); }
-	if (!edges.isEmpty()) { edges.clear(); }
-
-	// Define vertices and initialize edges
-	for (int i = 0; i < 8; ++i) {
-		vertexes.append(Vertex());
-		vertexes[i].set(V[i], nullptr); // Initialize vertices with positions
-	}
-
-	// Define edges
-	for (int i = 0; i < 8; ++i) {
-		int j = (i + 1) % 4;
-		edges.append(H_edge());
-		edges[i].set(&vertexes[i], nullptr, nullptr, nullptr, nullptr); // Initialize edges with origin vertex
-		edges[i + 4].set(&vertexes[j], nullptr, nullptr, nullptr, nullptr); // Initialize diagonal edges
-	}
-
-	// Define faces
-	for (int i = 0; i < 6; ++i) {
-		faces.append(Face());
-	}
-
-	// Define face-edge relationships
-	for (int i = 0; i < 6; ++i) {
-		int startVertexIndex = (i / 2) * 4; // Start index of vertices for this face
-		QVector<H_edge*> faceEdges;
-		for (int j = 0; j < 4; ++j) {
-			int edgeIndex = (i % 2) * 4 + j; // Start index of edges for this face
-			faceEdges.append(&edges[startVertexIndex + j]); // Add outer edges
-			faceEdges.append(&edges[edgeIndex]); // Add diagonal edges
-			edges[edgeIndex].face = &faces[i]; // Assign face to diagonal edges
-		}
-		faces[i].edge = faceEdges[0]; // Assign the first edge of the face
-	}
-
-	// Define edge connections
-	for (int i = 0; i < 8; ++i) {
-		int nextIndex = (i + 1) % 4;
-		edges[i].edge_next = &edges[i + 4];
-		edges[i + 4].edge_prev = &edges[i];
-		edges[i].pair = &edges[nextIndex + 4];
-		edges[nextIndex + 4].pair = &edges[i];
-	}
-}
 void ViewerWidget::createObjectCube2(QVector<QVector3D> V) {
-	vertexes.resize(8);
+	vertices.resize(8);
 	edges.resize(36);
 	faces.resize(12);
 	
@@ -1022,85 +975,168 @@ void ViewerWidget::createObjectCube2(QVector<QVector3D> V) {
 		n += 3;
 	}
 
-	vertexes[0].set(V[0], &edges[0]);
-	vertexes[1].set(V[1], &edges[6]);
-	vertexes[2].set(V[2], &edges[12]);
-	vertexes[3].set(V[3], &edges[19]);
-	vertexes[4].set(V[4], &edges[30]);
-	vertexes[5].set(V[5], &edges[34]);
-	vertexes[6].set(V[6], &edges[35]);
-	vertexes[7].set(V[7], &edges[32]);
+	vertices[0].set(V[0], &edges[0]);
+	vertices[1].set(V[1], &edges[6]);
+	vertices[2].set(V[2], &edges[12]);
+	vertices[3].set(V[3], &edges[19]);
+	vertices[4].set(V[4], &edges[30]);
+	vertices[5].set(V[5], &edges[34]);
+	vertices[6].set(V[6], &edges[35]);
+	vertices[7].set(V[7], &edges[32]);
 
-	edges[0].set(&vertexes[0], &faces[0], &edges[1], &edges[2], &edges[26]);
-	edges[1].set(&vertexes[1], &faces[0], &edges[2], &edges[0], &edges[5]);
-	edges[2].set(&vertexes[4], &faces[0], &edges[0], &edges[1], &edges[22]);
-	edges[3].set(&vertexes[1], &faces[1], &edges[4], &edges[5], &edges[8]);
-	edges[4].set(&vertexes[5], &faces[1], &edges[5], &edges[3], &edges[30]);
-	edges[5].set(&vertexes[4], &faces[1], &edges[3], &edges[4], &edges[1]);
-	edges[6].set(&vertexes[1], &faces[2], &edges[7], &edges[8], &edges[29]);
-	edges[7].set(&vertexes[2], &faces[2], &edges[8], &edges[6], &edges[11]);
-	edges[8].set(&vertexes[5], &faces[2], &edges[6], &edges[7], &edges[3]);
-	edges[9].set(&vertexes[2], &faces[3], &edges[10], &edges[11], &edges[14]);
-	edges[10].set(&vertexes[6], &faces[3], &edges[11], &edges[9], &edges[34]);
-	edges[11].set(&vertexes[5], &faces[3], &edges[9], &edges[10], &edges[4]);
-	edges[12].set(&vertexes[2], &faces[4], &edges[13], &edges[14], &edges[28]);
-	edges[13].set(&vertexes[3], &faces[4], &edges[14], &edges[12], &edges[15]);
-	edges[14].set(&vertexes[6], &faces[4], &edges[12], &edges[13], &edges[9]);
-	edges[15].set(&vertexes[6], &faces[5], &edges[16], &edges[17], &edges[13]);
-	edges[16].set(&vertexes[3], &faces[5], &edges[17], &edges[15], &edges[18]);
-	edges[17].set(&vertexes[7], &faces[5], &edges[15], &edges[16], &edges[35]);
-	edges[18].set(&vertexes[7], &faces[6], &edges[19], &edges[20], &edges[16]);
-	edges[19].set(&vertexes[3], &faces[6], &edges[20], &edges[18], &edges[34]);
-	edges[20].set(&vertexes[0], &faces[6], &edges[18], &edges[19], &edges[21]);
-	edges[21].set(&vertexes[7], &faces[7], &edges[22], &edges[23], &edges[20]);
-	edges[22].set(&vertexes[0], &faces[7], &edges[23], &edges[21], &edges[2]);
-	edges[23].set(&vertexes[4], &faces[7], &edges[21], &edges[22], &edges[32]);
-	edges[24].set(&vertexes[0], &faces[8], &edges[25], &edges[26], &edges[19]);
-	edges[25].set(&vertexes[3], &faces[8], &edges[26], &edges[24], &edges[27]);
-	edges[26].set(&vertexes[1], &faces[8], &edges[24], &edges[25], &edges[0]);
-	edges[27].set(&vertexes[1], &faces[9], &edges[28], &edges[29], &edges[25]);
-	edges[28].set(&vertexes[3], &faces[9], &edges[29], &edges[27], &edges[12]);
-	edges[29].set(&vertexes[2], &faces[9], &edges[27], &edges[28], &edges[6]);
-	edges[30].set(&vertexes[4], &faces[10], &edges[31], &edges[32], &edges[4]);
-	edges[31].set(&vertexes[5], &faces[10], &edges[32], &edges[30], &edges[33]);
-	edges[32].set(&vertexes[7], &faces[10], &edges[30], &edges[31], &edges[23]);
-	edges[33].set(&vertexes[7], &faces[11], &edges[34], &edges[35], &edges[31]);
-	edges[34].set(&vertexes[5], &faces[11], &edges[35], &edges[33], &edges[10]);
-	edges[35].set(&vertexes[6], &faces[11], &edges[33], &edges[34], &edges[17]);
+	edges[0].set(&vertices[0], &faces[0], &edges[1], &edges[2], &edges[26]);
+	edges[1].set(&vertices[1], &faces[0], &edges[2], &edges[0], &edges[5]);
+	edges[2].set(&vertices[4], &faces[0], &edges[0], &edges[1], &edges[22]);
+	edges[3].set(&vertices[1], &faces[1], &edges[4], &edges[5], &edges[8]);
+	edges[4].set(&vertices[5], &faces[1], &edges[5], &edges[3], &edges[30]);
+	edges[5].set(&vertices[4], &faces[1], &edges[3], &edges[4], &edges[1]);
+	edges[6].set(&vertices[1], &faces[2], &edges[7], &edges[8], &edges[29]);
+	edges[7].set(&vertices[2], &faces[2], &edges[8], &edges[6], &edges[11]);
+	edges[8].set(&vertices[5], &faces[2], &edges[6], &edges[7], &edges[3]);
+	edges[9].set(&vertices[2], &faces[3], &edges[10], &edges[11], &edges[14]);
+	edges[10].set(&vertices[6], &faces[3], &edges[11], &edges[9], &edges[34]);
+	edges[11].set(&vertices[5], &faces[3], &edges[9], &edges[10], &edges[4]);
+	edges[12].set(&vertices[2], &faces[4], &edges[13], &edges[14], &edges[28]);
+	edges[13].set(&vertices[3], &faces[4], &edges[14], &edges[12], &edges[15]);
+	edges[14].set(&vertices[6], &faces[4], &edges[12], &edges[13], &edges[9]);
+	edges[15].set(&vertices[6], &faces[5], &edges[16], &edges[17], &edges[13]);
+	edges[16].set(&vertices[3], &faces[5], &edges[17], &edges[15], &edges[18]);
+	edges[17].set(&vertices[7], &faces[5], &edges[15], &edges[16], &edges[35]);
+	edges[18].set(&vertices[7], &faces[6], &edges[19], &edges[20], &edges[16]);
+	edges[19].set(&vertices[3], &faces[6], &edges[20], &edges[18], &edges[34]);
+	edges[20].set(&vertices[0], &faces[6], &edges[18], &edges[19], &edges[21]);
+	edges[21].set(&vertices[7], &faces[7], &edges[22], &edges[23], &edges[20]);
+	edges[22].set(&vertices[0], &faces[7], &edges[23], &edges[21], &edges[2]);
+	edges[23].set(&vertices[4], &faces[7], &edges[21], &edges[22], &edges[32]);
+	edges[24].set(&vertices[0], &faces[8], &edges[25], &edges[26], &edges[19]);
+	edges[25].set(&vertices[3], &faces[8], &edges[26], &edges[24], &edges[27]);
+	edges[26].set(&vertices[1], &faces[8], &edges[24], &edges[25], &edges[0]);
+	edges[27].set(&vertices[1], &faces[9], &edges[28], &edges[29], &edges[25]);
+	edges[28].set(&vertices[3], &faces[9], &edges[29], &edges[27], &edges[12]);
+	edges[29].set(&vertices[2], &faces[9], &edges[27], &edges[28], &edges[6]);
+	edges[30].set(&vertices[4], &faces[10], &edges[31], &edges[32], &edges[4]);
+	edges[31].set(&vertices[5], &faces[10], &edges[32], &edges[30], &edges[33]);
+	edges[32].set(&vertices[7], &faces[10], &edges[30], &edges[31], &edges[23]);
+	edges[33].set(&vertices[7], &faces[11], &edges[34], &edges[35], &edges[31]);
+	edges[34].set(&vertices[5], &faces[11], &edges[35], &edges[33], &edges[10]);
+	edges[35].set(&vertices[6], &faces[11], &edges[33], &edges[34], &edges[17]);
 
-	saveCube("cube.vtk");
+	saveObject("cube.vtk");
+}
+void ViewerWidget::createObjectCube(QVector<QVector3D> V) {
+	vertices.resize(8);
+	edges.resize(24);
+	faces.resize(6);
+
+	faces[0].edge = &edges[0];
+	faces[1].edge = &edges[1];
+	faces[2].edge = &edges[2];
+	faces[3].edge = &edges[3];
+	faces[4].edge = &edges[0];
+	faces[5].edge = &edges[4];
+
+	vertices[0].set(V[0], &edges[0]);
+	vertices[1].set(V[1], &edges[1]);
+	vertices[2].set(V[2], &edges[2]);
+	vertices[3].set(V[3], &edges[3]);
+	vertices[4].set(V[4], &edges[20]);
+	vertices[5].set(V[5], &edges[21]);
+	vertices[6].set(V[6], &edges[22]);
+	vertices[7].set(V[7], &edges[23]);
+
+	edges[0].set(&vertices[0], &faces[0], &edges[1], &edges[3], &edges[16]);
+	edges[1].set(&vertices[1], &faces[0], &edges[2], &edges[0], &edges[7]);
+	edges[2].set(&vertices[5], &faces[0], &edges[3], &edges[1], &edges[20]);
+	edges[3].set(&vertices[4], &faces[0], &edges[0], &edges[2], &edges[13]);
+	edges[4].set(&vertices[1], &faces[1], &edges[5], &edges[7], &edges[17]);
+	edges[5].set(&vertices[2], &faces[1], &edges[6], &edges[4], &edges[11]);
+	edges[6].set(&vertices[6], &faces[1], &edges[7], &edges[5], &edges[21]);
+	edges[7].set(&vertices[5], &faces[1], &edges[4], &edges[6], &edges[1]);
+	edges[8].set(&vertices[2], &faces[2], &edges[9], &edges[11], &edges[18]);
+	edges[9].set(&vertices[3], &faces[2], &edges[10], &edges[8], &edges[15]);
+	edges[10].set(&vertices[7], &faces[2], &edges[11], &edges[9], &edges[22]);
+	edges[11].set(&vertices[6], &faces[2], &edges[8], &edges[10], &edges[5]);
+	edges[12].set(&vertices[3], &faces[3], &edges[13], &edges[15], &edges[19]);
+	edges[13].set(&vertices[0], &faces[3], &edges[14], &edges[12], &edges[3]);
+	edges[14].set(&vertices[4], &faces[3], &edges[15], &edges[13], &edges[23]);
+	edges[15].set(&vertices[7], &faces[3], &edges[12], &edges[14], &edges[9]);
+	edges[16].set(&vertices[0], &faces[4], &edges[17], &edges[19], &edges[0]);
+	edges[17].set(&vertices[1], &faces[4], &edges[18], &edges[16], &edges[4]);
+	edges[18].set(&vertices[2], &faces[4], &edges[19], &edges[17], &edges[8]);
+	edges[19].set(&vertices[3], &faces[4], &edges[16], &edges[18], &edges[12]);
+	edges[20].set(&vertices[4], &faces[5], &edges[21], &edges[23], &edges[2]);
+	edges[21].set(&vertices[5], &faces[5], &edges[22], &edges[20], &edges[6]);
+	edges[22].set(&vertices[6], &faces[5], &edges[23], &edges[21], &edges[10]);
+	edges[23].set(&vertices[7], &faces[5], &edges[20], &edges[22], &edges[14]);
+
+	saveObject("cube.vtk");
+}
+void ViewerWidget::createObjectUVSphere(QVector<QVector3D> V, int rings, int segments) {
+	if (!vertices.isEmpty()) { vertices.clear(); }
+	if (!edges.isEmpty()) { edges.clear(); }
+	if (!edges.isEmpty()) { edges.clear(); }
+
+	vertices.resize(V.size());
+
+	for (int i = 0; i < V.size(); i++) {
+		vertices[i].set(V[i], nullptr);
+	}
+	saveObjectTriangles("sphere.vtk");
 }
 
-void ViewerWidget::saveObject(QString filename){
-	saveCube(filename);
-}
-void ViewerWidget::saveCube(QString filename) {
+void ViewerWidget::saveObject(QString filename) {
 	QFile file("../output/" + filename);
 
 	if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		QTextStream out(&file);
 
-		out << "# vtk DataFile Version 3.0\nvtk output\nASCII\nDATASET POLYDATA\nPOINTS " << vertexes.size() << " float\n";
-		for (Vertex& vertex : vertexes) {
+		out << "# vtk DataFile Version 3.0\nvtk output\nASCII\nDATASET POLYDATA\nPOINTS " << vertices.size() << " float\n";
+		for (Vertex& vertex : vertices) {
 			out << vertex.x << " " << vertex.y << " " << vertex.z << "\n";
 		}
 
 		out << "LINES " << edges.size() << " " << 3 * edges.size() << "\n";
 		for (H_edge& edge : edges) {
-			out << "2 " << vertexes.indexOf(*edge.vert_origin) << " " << vertexes.indexOf(*edge.edge_next->vert_origin) << "\n";
+			out << "2 " << vertices.indexOf(*edge.vert_origin) << " " << vertices.indexOf(*edge.edge_next->vert_origin) << "\n";
 		}
 
 		out << "POLYGONS " << faces.size() << " " << 4 * faces.size() << "\n";
 		for (Face& face : faces) {
-			out << "3 " << vertexes.indexOf(*face.edge->vert_origin) << " " << vertexes.indexOf(*face.edge->edge_next->vert_origin) << " " << vertexes.indexOf(*face.edge->edge_next->edge_next->vert_origin) << "\n";
+			out << "4 " << vertices.indexOf(*face.edge->vert_origin) << " " << vertices.indexOf(*face.edge->edge_next->vert_origin) << " " << vertices.indexOf(*face.edge->edge_next->edge_next->vert_origin) << " " << vertices.indexOf(*face.edge->edge_prev->vert_origin) << "\n";
 		}
 
 		file.close();
 	}
 	else {
-		qDebug() << "error opening file saveCube!";
+		qDebug() << "error opening file in saveObject!";
 	}
 }
+void ViewerWidget::saveObjectTriangles(QString filename) {
+	QFile file("../output/" + filename);
 
+	if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+		QTextStream out(&file);
+
+		out << "# vtk DataFile Version 3.0\nvtk output\nASCII\nDATASET POLYDATA\nPOINTS " << vertices.size() << " float\n";
+		for (Vertex& vertex : vertices) {
+			out << vertex.x << " " << vertex.y << " " << vertex.z << "\n";
+		}
+
+		out << "LINES " << edges.size() << " " << 3 * edges.size() << "\n";
+		for (H_edge& edge : edges) {
+			out << "2 " << vertices.indexOf(*edge.vert_origin) << " " << vertices.indexOf(*edge.edge_next->vert_origin) << "\n";
+		}
+
+		out << "POLYGONS " << faces.size() << " " << 4 * faces.size() << "\n";
+		for (Face& face : faces) {
+			out << "3 " << vertices.indexOf(*face.edge->vert_origin) << " " << vertices.indexOf(*face.edge->edge_next->vert_origin) << " " << vertices.indexOf(*face.edge->edge_next->edge_next->vert_origin) << "\n";
+		}
+
+		file.close();
+	}
+	else {
+		qDebug() << "error opening file in saveObjectTriangles!";
+	}
+}
 
 #pragma endregion

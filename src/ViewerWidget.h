@@ -30,7 +30,7 @@ private:
 
 	QVector<H_edge> edges;
 	QVector<Face> faces;
-	QVector<Vertex> vertexes;
+	QVector<Vertex> vertices;
 
 #pragma endregion
 
@@ -125,8 +125,10 @@ public:
 	
 	void createObjectCube(QVector<QVector3D> V);
 	void createObjectCube2(QVector<QVector3D> V);
+	void createObjectUVSphere(QVector<QVector3D> V, int rings, int segments);
+
 	void saveObject(QString filename);
-	void saveCube(QString filename);
+	void saveObjectTriangles(QString filename);
 
 #pragma endregion
 

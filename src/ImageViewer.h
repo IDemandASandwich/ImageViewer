@@ -67,4 +67,5 @@ private slots:
 	void on_pushButtonShear_clicked();
 
 	void on_pushButtonCube_clicked();
+	void on_pushButtonUVSphere_clicked();
 };

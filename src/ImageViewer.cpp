@@ -472,5 +472,29 @@ void ImageViewer::on_pushButtonCube_clicked() {
 
 	cube << v0 << v1 << v2 << v3 << v4 << v5 << v6 << v7;
 
-	vW->createObjectCube2(cube);
+	vW->createObjectCube(cube);
+}
+void ImageViewer::on_pushButtonUVSphere_clicked() {
+	QVector<QVector3D> sphere;
+	double l = ui->spinBoxRadius->value();
+	int rings = ui->spinBoxRings->value() + 1;
+	int segments = ui->spinBoxSegments->value();
+
+	double thetaInc = M_PI / static_cast<double>(rings);
+	double gammaInc = 2*M_PI / static_cast<double>(segments);
+	double theta = -(M_PI/2.) + thetaInc;
+	double gamma = gammaInc;
+
+	sphere.append(QVector3D(0, 0, -l));
+
+	for (int i = 1; i < rings; i++) {
+		for (int j = 0; j < segments; j++) {
+			sphere.append(QVector3D(l * cos(theta) * cos(gamma), l * cos(theta) * sin(gamma), l * sin(theta)));
+			gamma += gammaInc;
+		}
+		theta += thetaInc;
+	}
+
+	sphere.append(QVector3D(0, 0, l));
+	vW->createObjectUVSphere(sphere, rings, segments);
 }
