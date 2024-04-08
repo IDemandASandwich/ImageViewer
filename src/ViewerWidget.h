@@ -28,9 +28,9 @@ private:
 #pragma endregion
 #pragma region 3D
 
+	QVector<Vertex> vertices;
 	QVector<H_edge> edges;
 	QVector<Face> faces;
-	QVector<Vertex> vertices;
 
 #pragma endregion
 
@@ -123,12 +123,11 @@ public:
 #pragma endregion
 #pragma region 3D
 	
-	void createObjectCube(QVector<QVector3D> V);
-	void createObjectCube2(QVector<QVector3D> V);
-	void createObjectUVSphere(QVector<QVector3D> V, int rings, int segments);
+	void saveCubeToVTK(int length);
+	void loadCubeFromVTK(QString filename);
+	void saveUVSphereToVTK(int radius ,int rings, int segments);
 
 	void saveObject(QString filename);
-	void saveObjectTriangles(QString filename);
 
 #pragma endregion
 

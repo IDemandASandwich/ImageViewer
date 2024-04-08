@@ -457,44 +457,14 @@ void ImageViewer::on_pushButtonShear_clicked() {
 }
 
 void ImageViewer::on_pushButtonCube_clicked() {
-	QVector<QVector3D> cube;
-
 	int l = ui->spinBoxCubeSideLength->value();
 
-	QVector3D v0(0 ,0 ,0 );
-	QVector3D v1(l ,0 ,0 );
-	QVector3D v2(l ,l ,0 );
-	QVector3D v3(0 ,l ,0 );
-	QVector3D v4(0 ,0 ,l );
-	QVector3D v5(l ,0 ,l );
-	QVector3D v6(l ,l ,l );
-	QVector3D v7(0 ,l ,l );
-
-	cube << v0 << v1 << v2 << v3 << v4 << v5 << v6 << v7;
-
-	vW->createObjectCube(cube);
+	vW->saveCubeToVTK(l);
 }
 void ImageViewer::on_pushButtonUVSphere_clicked() {
-	QVector<QVector3D> sphere;
-	double l = ui->spinBoxRadius->value();
-	int rings = ui->spinBoxRings->value() + 1;
+	double radius = ui->spinBoxRadius->value();
+	int rings = ui->spinBoxRings->value();
 	int segments = ui->spinBoxSegments->value();
 
-	double thetaInc = M_PI / static_cast<double>(rings);
-	double gammaInc = 2*M_PI / static_cast<double>(segments);
-	double theta = -(M_PI/2.) + thetaInc;
-	double gamma = gammaInc;
-
-	sphere.append(QVector3D(0, 0, -l));
-
-	for (int i = 1; i < rings; i++) {
-		for (int j = 0; j < segments; j++) {
-			sphere.append(QVector3D(l * cos(theta) * cos(gamma), l * cos(theta) * sin(gamma), l * sin(theta)));
-			gamma += gammaInc;
-		}
-		theta += thetaInc;
-	}
-
-	sphere.append(QVector3D(0, 0, l));
-	vW->createObjectUVSphere(sphere, rings, segments);
+	vW->saveUVSphereToVTK(radius, rings, segments);
 }
