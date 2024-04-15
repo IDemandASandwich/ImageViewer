@@ -124,10 +124,10 @@ public:
 #pragma region 3D
 	
 	void saveCubeToVTK(int length);
-	void loadCubeFromVTK(QString filename);
 	void saveUVSphereToVTK(int radius ,int rings, int segments);
 
-	void saveObject(QString filename);
+	void loadObject(QString filename);
+	void saveObject(QString filename, int representation = 0);
 
 #pragma endregion
 

@@ -1003,98 +1003,7 @@ void ViewerWidget::saveCubeToVTK(int l) {
 		qDebug() << "error opening file in createVTK_Cube!";
 	}
 
-	loadCubeFromVTK("cube.vtk");
-}
-void ViewerWidget::loadCubeFromVTK(QString filename) {
-	if (!vertices.isEmpty()) { vertices.clear(); }
-	if (!edges.isEmpty()) { edges.clear(); }
-	if (!faces.isEmpty()) { faces.clear(); }
-
-	QFile file("../output/" + filename);
-
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-		qDebug() << "Error loading cube! - Couldn't find file " << filename;
-		return;
-	}
-
-	QTextStream in(&file);
-
-	// Read and process header
-	QString line = in.readLine();
-	if (!line.startsWith("# vtk")) {
-		qDebug() << "Invalid VTK file format";
-		return;
-	}
-
-	// Skip header
-	while (!line.startsWith("POINTS")) {
-		line = in.readLine();
-	}
-
-	QStringList parts = line.split(" ");
-	int n = parts[1].toInt();
-	for (int i = 0; i < n; i++) {
-		line = in.readLine();
-		parts = line.split(" ");
-		if (parts.size() != 3) {
-			qDebug() << "Invalid point data";
-			return;
-		}
-		float x = parts[0].toFloat();
-		float y = parts[1].toFloat();
-		float z = parts[2].toFloat();
-		vertices.append(Vertex(x,y,z));
-	}
-
-	// Skip polygons count
-	line = in.readLine();
-	parts = line.split(" ");
-	n = parts[1].toInt();
-	faces.resize(n);
-	// Read polygons
-	for (int i = 0; i < n; i++) {
-		line = in.readLine().trimmed();
-		if (line.isEmpty()) {
-			continue;
-		}
-		parts = line.split(" ");
-		parts.removeFirst();
-		if (parts.isEmpty()) {
-			qDebug() << "Invalid polygon data.";
-			return;
-		}
-		int v0 = parts[0].toInt();
-		int v1 = parts[1].toInt();
-		int v2 = parts[2].toInt();
-
-		//create edges
-		edges.resize(edges.size() + 3);
-		static int n = 0;
-		edges[n].set(&vertices[v0], &faces[i], &edges[n + 1], &edges[n + 2]);
-		edges[n+1].set(&vertices[v1], &faces[i], &edges[n + 2], &edges[n]);
-		edges[n+2].set(&vertices[v2], &faces[i], &edges[n], &edges[n + 1]);
-
-		faces[i].edge = &edges[n];
-		edges[n].vert_origin->edge = &edges[n];
-		n += 3;
-	}
-	//assign pairs
-	for (H_edge& e1 : edges) {
-		if (e1.pair == nullptr) {
-			for (H_edge& e2 : edges) {
-				if (&e1 != &e2) {
-					if (e1.edge_next->vert_origin == e2.edge_prev->vert_origin) {
-						e1.pair = &e2;
-						e2.pair = &e1;
-					}
-				}
-			}
-		}
-	}
-	
-	file.close();
-	
-	//saveObject("cubeFull.vtk");
+	loadObject("cube.vtk");
 }
 void ViewerWidget::saveUVSphereToVTK(int r, int rings, int segments) {
 	QFile file("../output/sphere.vtk");
@@ -1144,12 +1053,14 @@ void ViewerWidget::saveUVSphereToVTK(int r, int rings, int segments) {
 	if (rings != 1) {
 		for (int i = 0; i < rings-1; i++) {
 			for (int j = 1 + i * segments; j < segments * (i + 1); j++) {
+				//first is the bottom one, second is the top one
 				out << "3 " << j << " " << (j + 1) << " " << (j + 1 + segments) << "\n";
 				out << "3 " << j << " " << (j + segments) << " " << (j+1+segments) << "\n";
 			}
-
-			out << "3 " << segments + segments * i << " " << 1 + segments * i << " " << 2 * segments + segments * i << "\n";
-			out << "3 " << 1 + segments * i << " " << 1 + segments + segments * i << " " << 2 * segments + segments * i << "\n";
+			
+			//edges slicing the last surface
+			out << "3 " << segments + segments * i << " " << 1 + segments + segments * i << " " << 2 * segments + segments * i << "\n";
+			out << "3 " << segments + segments * i << " " << 1 + segments * i << " " << 1 + segments + segments * i << "\n";
 		}
 	}
 	//upper triangles
@@ -1161,10 +1072,102 @@ void ViewerWidget::saveUVSphereToVTK(int r, int rings, int segments) {
 	file.close();
 	//polygons end
 
-	//loadSphereFromVTK("sphere.vtk");
+	loadObject("sphere.vtk");
 }
 
-void ViewerWidget::saveObject(QString filename) {
+void ViewerWidget::loadObject(QString filename) {
+	if (!vertices.isEmpty()) { vertices.clear(); }
+	if (!edges.isEmpty()) { edges.clear(); }
+	if (!faces.isEmpty()) { faces.clear(); }
+
+	QFile file("../output/" + filename);
+
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		qDebug() << "Error loading cube! - Couldn't find file " << filename;
+		return;
+	}
+
+	QTextStream in(&file);
+
+	// Read and process header
+	QString line = in.readLine();
+	if (!line.startsWith("# vtk")) {
+		qDebug() << "Invalid VTK file format";
+		return;
+	}
+
+	// Skip header
+	while (!line.startsWith("POINTS")) {
+		line = in.readLine();
+	}
+
+	QStringList parts = line.split(" ");
+	int n = parts[1].toInt();
+	for (int i = 0; i < n; i++) {
+		line = in.readLine();
+		parts = line.split(" ");
+		if (parts.size() != 3) {
+			qDebug() << "Invalid point data";
+			return;
+		}
+		float x = parts[0].toFloat();
+		float y = parts[1].toFloat();
+		float z = parts[2].toFloat();
+		vertices.append(Vertex(x, y, z));
+	}
+
+	// Skip polygons count
+	line = in.readLine();
+	parts = line.split(" ");
+	n = parts[1].toInt();
+	faces.resize(n);
+	int numEdges = parts[2].toInt() - parts[1].toInt();
+	edges.resize(numEdges);
+	// Read polygons
+	for (int i = 0; i < n; i++) {
+		line = in.readLine().trimmed();
+		if (line.isEmpty()) {
+			continue;
+		}
+		parts = line.split(" ");
+		parts.removeFirst();
+		if (parts.isEmpty()) {
+			qDebug() << "Invalid polygon data.";
+			return;
+		}
+		int v0 = parts[0].toInt();
+		int v1 = parts[1].toInt();
+		int v2 = parts[2].toInt();
+
+		//create edges
+		static qsizetype m = 0;
+		edges[m].set(&vertices[v0], &faces[i], &edges[m + 1], &edges[m + 2]);
+		edges[m + 1].set(&vertices[v1], &faces[i], &edges[m + 2], &edges[m]);
+		edges[m + 2].set(&vertices[v2], &faces[i], &edges[m], &edges[m + 1]);
+
+		faces[i].edge = &edges[m];
+		edges[m].vert_origin->edge = &edges[m];
+		m += 3;
+	}
+	//assign pairs
+	for (H_edge& e1 : edges) { // still wrong
+		if (e1.pair == nullptr) {
+			for (H_edge& e2 : edges) {
+				if (&e1 != &e2) {
+					if (e1.edge_next->vert_origin == e2.vert_origin) {
+						e1.pair = &e2;
+						e2.pair = &e1;
+					}
+				}
+			}
+		}
+	}
+
+	file.close();
+}
+void ViewerWidget::saveObject(QString filename, int representation) {
+	enum types{surface, wireframe, points};
+
 	QFile file("../output/" + filename);
 
 	if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -1175,14 +1178,19 @@ void ViewerWidget::saveObject(QString filename) {
 			out << vertex.x << " " << vertex.y << " " << vertex.z << "\n";
 		}
 
-		out << "LINES " << edges.size() << " " << 3 * edges.size() << "\n";
-		for (H_edge& edge : edges) {
-			out << "2 " << vertices.indexOf(*edge.vert_origin) << " " << vertices.indexOf(*edge.pair->vert_origin) << "\n";
+		// TODO: currently saving every edge twice
+		if (representation == wireframe) {
+			out << "LINES " << edges.size() << " " << 3 * edges.size() << "\n";
+			for (H_edge& edge : edges) {
+				out << "2 " << vertices.indexOf(*edge.vert_origin) << " " << vertices.indexOf(*edge.edge_next->vert_origin) << "\n";
+			}
 		}
 
-		out << "POLYGONS " << faces.size() << " " << 4 * faces.size() << "\n";
-		for (Face& face : faces) {
-			out << "3 " << vertices.indexOf(*face.edge->vert_origin) << " " << vertices.indexOf(*face.edge->edge_next->vert_origin) << " " << vertices.indexOf(*face.edge->edge_next->edge_next->vert_origin) << "\n";
+		if (representation == surface) {
+			out << "POLYGONS " << faces.size() << " " << 4 * faces.size() << "\n";
+			for (Face& face : faces) {
+				out << "3 " << vertices.indexOf(*face.edge->vert_origin) << " " << vertices.indexOf(*face.edge->edge_next->vert_origin) << " " << vertices.indexOf(*face.edge->edge_prev->vert_origin) << "\n";
+			}
 		}
 
 		file.close();
