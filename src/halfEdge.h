@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QVector3D>
+#include <QTextStream>
 
 class H_edge; //forward declaration
 
@@ -11,6 +12,7 @@ public:
 
 	Vertex() : x(0), y(0), z(0), edge(nullptr) {};
 	Vertex(QVector3D v, H_edge* e = nullptr) : x(v.x()), y(v.y()), z(v.z()), edge(e) {};
+	Vertex(double x, double y, double z, H_edge* e = nullptr) : x(x), y(y), z(z), edge(e) {};
 	void set(QVector3D v, H_edge* e) {
 		x = v.x();
 		y = v.y();
@@ -23,6 +25,10 @@ public:
 	friend QDebug operator<<(QDebug debug, const Vertex& v) {
 		debug << v.x << v.y << v.z;
 		return debug;
+	}
+	friend QTextStream& operator<<(QTextStream& out, const Vertex& v) {
+		out << v.x << " " << v.y << " " << v.z;
+		return out;
 	}
 };
 

@@ -970,15 +970,18 @@ void ViewerWidget::saveCubeToVTK(int l) {
 	if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		QTextStream out(&file);
 
+		double l2 = static_cast<double>(l) / 2.;
+
 		out << "# vtk DataFile Version 3.0\nvtk output\nASCII\nDATASET POLYDATA\nPOINTS 8 float\n";
-		out << "0 0 0\n";
-		out << l << " 0 0\n";
-		out << l << " " << l << " 0\n";
-		out << "0 " << l << " 0\n";
-		out << "0 0 " << l << "\n";
-		out << l << " 0 " << l << "\n";
-		out << l << " " << l << " " << l << "\n";
-		out << "0 " << l << " " << l << "\n";
+		out << Vertex(-l2, -l2, -l2) << "\n";
+		out << Vertex(l2, -l2, -l2) << "\n";
+		out << Vertex(l2, l2, -l2) << "\n";
+		out << Vertex(-l2, l2, -l2) << "\n";
+		out << Vertex(-l2, -l2, l2) << "\n";
+		out << Vertex(l2, -l2, l2) << "\n";
+		out << Vertex(l2, l2, l2) << "\n";
+		out << Vertex(-l2, l2, l2) << "\n";
+		
 
 		out << "POLYGONS 12 48\n";
 		out << "3 0 1 4\n";
@@ -1040,7 +1043,7 @@ void ViewerWidget::loadCubeFromVTK(QString filename) {
 		float x = parts[0].toFloat();
 		float y = parts[1].toFloat();
 		float z = parts[2].toFloat();
-		vertices.append(Vertex(QVector3D(x,y,z), nullptr));
+		vertices.append(Vertex(x,y,z));
 	}
 
 	// Skip polygons count
@@ -1077,12 +1080,13 @@ void ViewerWidget::loadCubeFromVTK(QString filename) {
 	}
 	//assign pairs
 	for (H_edge& e1 : edges) {
-		for (H_edge& e2 : edges) {
-			if (e1.edge_next->vert_origin == e2.vert_origin) {
-				if (e1.vert_origin == e2.edge_next->vert_origin) {
-					e1.pair = &e2;
-					e2.pair = &e1;//some pairs are not found idk
-					break;
+		if (e1.pair == nullptr) {
+			for (H_edge& e2 : edges) {
+				if (&e1 != &e2) {
+					if (e1.edge_next->vert_origin == e2.edge_prev->vert_origin) {
+						e1.pair = &e2;
+						e2.pair = &e1;
+					}
 				}
 			}
 		}
@@ -1090,7 +1094,7 @@ void ViewerWidget::loadCubeFromVTK(QString filename) {
 	
 	file.close();
 	
-	saveObject("cubeFull.vtk");
+	//saveObject("cubeFull.vtk");
 }
 void ViewerWidget::saveUVSphereToVTK(int r, int rings, int segments) {
 	QFile file("../output/sphere.vtk");
@@ -1184,7 +1188,7 @@ void ViewerWidget::saveObject(QString filename) {
 		file.close();
 	}
 	else {
-		qDebug() << "error opening file in saveObjectTriangles!";
+		qDebug() << "error opening file in saveObject!";
 	}
 }
 
