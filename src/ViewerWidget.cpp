@@ -986,14 +986,19 @@ void ViewerWidget::saveCubeToVTK(int l) {
 		out << "POLYGONS 12 48\n";
 		out << "3 0 1 4\n";
 		out << "3 1 5 4\n";
+
 		out << "3 1 2 5\n";
 		out << "3 2 6 5\n";
+
 		out << "3 2 3 6\n";
 		out << "3 3 7 6\n";
+
 		out << "3 3 0 7\n";
 		out << "3 0 4 7\n";
-		out << "3 0 1 3\n";
-		out << "3 1 2 3\n";
+
+		out << "3 1 0 2\n";
+		out << "3 0 3 2\n";
+
 		out << "3 4 5 7\n";
 		out << "3 5 6 7\n";
 
@@ -1025,6 +1030,7 @@ void ViewerWidget::saveUVSphereToVTK(int r, int rings, int segments) {
 	out << "# vtk DataFile Version 3.0\nvtk output\nASCII\nDATASET POLYDATA\nPOINTS " << numPoints << " float\n";
 	out << "0 0 " << -r << "\n";
 	for (int i = 1; i <= rings; i++) {
+		double gamma = gammaInc; // Reset gamma for each ring
 		for (int j = 0; j < segments; j++) {
 			out << r * cos(theta) * cos(gamma) << " " << r * cos(theta) * sin(gamma) << " " << r * sin(theta) << "\n";
 			gamma += gammaInc;
@@ -1054,20 +1060,20 @@ void ViewerWidget::saveUVSphereToVTK(int r, int rings, int segments) {
 		for (int i = 0; i < rings-1; i++) {
 			for (int j = 1 + i * segments; j < segments * (i + 1); j++) {
 				//first is the bottom one, second is the top one
-				out << "3 " << j << " " << (j + 1) << " " << (j + 1 + segments) << "\n";
-				out << "3 " << j << " " << (j + segments) << " " << (j+1+segments) << "\n";
+				out << "3 " << j << " " << j + segments << " " << (j + 1 + segments) << "\n";
+				out << "3 " << j << " " << (j + 1 + segments) << " " << j + 1 << "\n";
 			}
 			
 			//edges slicing the last surface
-			out << "3 " << segments + segments * i << " " << 1 + segments + segments * i << " " << 2 * segments + segments * i << "\n";
-			out << "3 " << segments + segments * i << " " << 1 + segments * i << " " << 1 + segments + segments * i << "\n";
+			out << "3 " << segments + segments * i << " " << 2 * segments + segments * i << " " << 1 + segments + segments * i << "\n";
+			out << "3 " << segments + segments * i << " " << 1 + segments + segments * i << " " << 1 + segments * i << "\n";
 		}
 	}
 	//upper triangles
 	for (int i = numPoints - segments - 1; i < numPoints-2; i++) {
-		out << "3 " << i << " " << i + 1 << " " << numPoints-1 << "\n";
+		out << "3 " << numPoints - 1 << " " << i + 1 << " " << i << "\n";
 	}
-	out << "3 " << numPoints-2 << " " << numPoints - 1 - segments << " " << numPoints - 1 << "\n";
+	out << "3 " << numPoints - 1 << " " << numPoints - 1 - segments << " " << numPoints - 2 << "\n";
 
 	file.close();
 	//polygons end
@@ -1100,7 +1106,7 @@ void ViewerWidget::loadObject(QString filename) {
 	while (!line.startsWith("POINTS")) {
 		line = in.readLine();
 	}
-
+	
 	QStringList parts = line.split(" ");
 	int n = parts[1].toInt();
 	for (int i = 0; i < n; i++) {
@@ -1110,20 +1116,21 @@ void ViewerWidget::loadObject(QString filename) {
 			qDebug() << "Invalid point data";
 			return;
 		}
-		float x = parts[0].toFloat();
-		float y = parts[1].toFloat();
-		float z = parts[2].toFloat();
+		double x = parts[0].toDouble();
+		double y = parts[1].toDouble();
+		double z = parts[2].toDouble();
 		vertices.append(Vertex(x, y, z));
 	}
-
 	// Skip polygons count
 	line = in.readLine();
 	parts = line.split(" ");
+	n = parts[2].toInt() - parts[1].toInt();
+	edges.resize(n);
 	n = parts[1].toInt();
 	faces.resize(n);
-	int numEdges = parts[2].toInt() - parts[1].toInt();
-	edges.resize(numEdges);
+
 	// Read polygons
+	qsizetype m = 0;
 	for (int i = 0; i < n; i++) {
 		line = in.readLine().trimmed();
 		if (line.isEmpty()) {
@@ -1140,23 +1147,27 @@ void ViewerWidget::loadObject(QString filename) {
 		int v2 = parts[2].toInt();
 
 		//create edges
-		static qsizetype m = 0;
 		edges[m].set(&vertices[v0], &faces[i], &edges[m + 1], &edges[m + 2]);
 		edges[m + 1].set(&vertices[v1], &faces[i], &edges[m + 2], &edges[m]);
 		edges[m + 2].set(&vertices[v2], &faces[i], &edges[m], &edges[m + 1]);
 
 		faces[i].edge = &edges[m];
-		edges[m].vert_origin->edge = &edges[m];
+		vertices[v0].edge = &edges[m];
+		vertices[v1].edge = &edges[m + 1];
+		vertices[v2].edge = &edges[m + 2];
 		m += 3;
 	}
 	//assign pairs
-	for (H_edge& e1 : edges) { // still wrong
+	for (H_edge& e1 : edges) {
 		if (e1.pair == nullptr) {
+			bool pairFound = false;
 			for (H_edge& e2 : edges) {
 				if (&e1 != &e2) {
-					if (e1.edge_next->vert_origin == e2.vert_origin) {
+					if (e1.vert_origin == e2.edge_next->vert_origin && e1.edge_next->vert_origin == e2.vert_origin) {
 						e1.pair = &e2;
 						e2.pair = &e1;
+						pairFound = true;
+						break;
 					}
 				}
 			}
@@ -1164,6 +1175,7 @@ void ViewerWidget::loadObject(QString filename) {
 	}
 
 	file.close();
+	saveObject(filename, 1);
 }
 void ViewerWidget::saveObject(QString filename, int representation) {
 	enum types{surface, wireframe, points};
@@ -1178,11 +1190,11 @@ void ViewerWidget::saveObject(QString filename, int representation) {
 			out << vertex.x << " " << vertex.y << " " << vertex.z << "\n";
 		}
 
-		// TODO: currently saving every edge twice
+		// TODO: currently saving every edge twice, too bad!
 		if (representation == wireframe) {
 			out << "LINES " << edges.size() << " " << 3 * edges.size() << "\n";
 			for (H_edge& edge : edges) {
-				out << "2 " << vertices.indexOf(*edge.vert_origin) << " " << vertices.indexOf(*edge.edge_next->vert_origin) << "\n";
+				out << "2 " << vertices.indexOf(*edge.vert_origin) << " " << vertices.indexOf(*edge.pair->vert_origin) << "\n";
 			}
 		}
 

@@ -22,6 +22,9 @@ public:
 	bool operator==(const Vertex& other) const {
 		return (x == other.x && y == other.y && z == other.z);
 	}
+	bool operator!=(const Vertex& other) const {
+		return (x != other.x && y != other.y && z != other.z);
+	}
 	friend QDebug operator<<(QDebug debug, const Vertex& v) {
 		debug << v.x << v.y << v.z;
 		return debug;
