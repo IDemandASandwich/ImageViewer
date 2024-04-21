@@ -964,8 +964,8 @@ void ViewerWidget::drawCoonsCubic(QVector<QPoint> points, QColor color, int show
 #pragma endregion
 #pragma region 3D
 
-void ViewerWidget::saveCubeToVTK(int l) {
-	QFile file("../output/cube.vtk");
+bool ViewerWidget::saveCubeToVTK(QString filename, int l) {
+	QFile file(filename);
 
 	if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		QTextStream out(&file);
@@ -1003,19 +1003,19 @@ void ViewerWidget::saveCubeToVTK(int l) {
 		out << "3 5 6 7\n";
 
 		file.close();
+		return true;
 	}
 	else {
 		qDebug() << "error opening file in createVTK_Cube!";
+		return false;
 	}
-
-	loadObject("cube.vtk");
 }
-void ViewerWidget::saveUVSphereToVTK(int r, int rings, int segments) {
-	QFile file("../output/sphere.vtk");
+bool ViewerWidget::saveUVSphereToVTK(QString filename, int r, int rings, int segments) {
+	QFile file(filename);
 
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		qDebug() << "error opening file in createVTK_Sphere!";
-		return;
+		return false;
 	}
 
 	QTextStream out(&file);
@@ -1076,21 +1076,19 @@ void ViewerWidget::saveUVSphereToVTK(int r, int rings, int segments) {
 	out << "3 " << numPoints - 1 << " " << numPoints - 1 - segments << " " << numPoints - 2 << "\n";
 
 	file.close();
-	//polygons end
-
-	loadObject("sphere.vtk");
+	return true;
 }
 
-void ViewerWidget::loadObject(QString filename) {
+bool ViewerWidget::loadObject(QString filename) {
 	if (!vertices.isEmpty()) { vertices.clear(); }
 	if (!edges.isEmpty()) { edges.clear(); }
 	if (!faces.isEmpty()) { faces.clear(); }
 
-	QFile file("../output/" + filename);
+	QFile file(filename);
 
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
 		qDebug() << "Error loading cube! - Couldn't find file " << filename;
-		return;
+		return false;
 	}
 
 	QTextStream in(&file);
@@ -1099,7 +1097,7 @@ void ViewerWidget::loadObject(QString filename) {
 	QString line = in.readLine();
 	if (!line.startsWith("# vtk")) {
 		qDebug() << "Invalid VTK file format";
-		return;
+		return false;
 	}
 
 	// Skip header
@@ -1114,7 +1112,7 @@ void ViewerWidget::loadObject(QString filename) {
 		parts = line.split(" ");
 		if (parts.size() != 3) {
 			qDebug() << "Invalid point data";
-			return;
+			return false;
 		}
 		double x = parts[0].toDouble();
 		double y = parts[1].toDouble();
@@ -1140,7 +1138,7 @@ void ViewerWidget::loadObject(QString filename) {
 		parts.removeFirst();
 		if (parts.isEmpty()) {
 			qDebug() << "Invalid polygon data.";
-			return;
+			return false;
 		}
 		int v0 = parts[0].toInt();
 		int v1 = parts[1].toInt();
@@ -1173,14 +1171,13 @@ void ViewerWidget::loadObject(QString filename) {
 			}
 		}
 	}
-
 	file.close();
-	saveObject(filename, 1);
+	return true;
 }
-void ViewerWidget::saveObject(QString filename, int representation) {
+bool ViewerWidget::saveObject(QString filename, int representation) {
 	enum types{surface, wireframe, points};
 
-	QFile file("../output/" + filename);
+	QFile file(filename);
 
 	if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		QTextStream out(&file);
@@ -1206,10 +1203,16 @@ void ViewerWidget::saveObject(QString filename, int representation) {
 		}
 
 		file.close();
+		return true;
 	}
 	else {
 		qDebug() << "error opening file in saveObject!";
+		return false;
 	}
+}
+
+void ViewerWidget::projectObject(int zenith, int azimuth, int projectType, int distance) {
+	n = QVector3D(sin(zenith)*sin(azimuth), );
 }
 
 #pragma endregion

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>789</width>
-    <height>617</height>
+    <width>1009</width>
+    <height>670</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,6 +17,9 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QToolBox" name="toolBox">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="sizePolicy">
        <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -464,8 +467,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>285</width>
-         <height>467</height>
+         <width>275</width>
+         <height>537</height>
         </rect>
        </property>
        <attribute name="label">
@@ -476,13 +479,23 @@
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
            <widget class="QGroupBox" name="groupBoxSimples">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="title">
              <string>simples</string>
             </property>
-            <layout class="QGridLayout" name="gridLayout_8">
-             <item row="0" column="0">
+            <layout class="QVBoxLayout" name="verticalLayout">
+             <item>
               <layout class="QGridLayout" name="gridLayout_7">
-               <item row="0" column="0">
+               <item row="0" column="2">
+                <widget class="QPushButton" name="pushButtonUVSphere">
+                 <property name="text">
+                  <string>UV Sphere</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3">
                 <widget class="QPushButton" name="pushButtonCube">
                  <property name="text">
                   <string>Cube</string>
@@ -491,63 +504,50 @@
                </item>
                <item row="2" column="2">
                 <widget class="QSpinBox" name="spinBoxRings">
+                 <property name="prefix">
+                  <string>Rings: </string>
+                 </property>
                  <property name="minimum">
                   <number>1</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="3">
-                <widget class="QSpinBox" name="spinBoxSegments">
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1">
-                <widget class="QLabel" name="label_5">
-                 <property name="text">
-                  <string>rings/segments</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="2">
-                <widget class="QSpinBox" name="spinBoxCubeSideLength">
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                 <property name="value">
-                  <number>1</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QLabel" name="label_3">
-                 <property name="text">
-                  <string>Length</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="0">
-                <widget class="QPushButton" name="pushButtonUVSphere">
-                 <property name="text">
-                  <string>UV Sphere</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="1" column="1">
-                <widget class="QLabel" name="label_6">
-                 <property name="text">
-                  <string>Radius</string>
                  </property>
                 </widget>
                </item>
                <item row="1" column="2">
                 <widget class="QSpinBox" name="spinBoxRadius">
+                 <property name="prefix">
+                  <string>Radius: </string>
+                 </property>
                  <property name="minimum">
                   <number>1</number>
                  </property>
                  <property name="value">
                   <number>1</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="3">
+                <widget class="QSpinBox" name="spinBoxCubeSideLength">
+                 <property name="suffix">
+                  <string/>
+                 </property>
+                 <property name="prefix">
+                  <string>Length: </string>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="value">
+                  <number>1</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="2">
+                <widget class="QSpinBox" name="spinBoxSegments">
+                 <property name="prefix">
+                  <string>Segments: </string>
+                 </property>
+                 <property name="minimum">
+                  <number>3</number>
                  </property>
                 </widget>
                </item>
@@ -557,6 +557,106 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxTools3D">
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="title">
+           <string>Tools</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_6">
+           <item row="1" column="1">
+            <widget class="QPushButton" name="pushButtonLoad">
+             <property name="text">
+              <string>Load object</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QSlider" name="horizontalSliderAzimuth">
+             <property name="maximum">
+              <number>360</number>
+             </property>
+             <property name="sliderPosition">
+              <number>0</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="tickPosition">
+              <enum>QSlider::NoTicks</enum>
+             </property>
+             <property name="tickInterval">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QComboBox" name="comboBoxSaveRepresentation">
+             <item>
+              <property name="text">
+               <string>Surface</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Wireframe</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Points</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="6" column="1">
+            <widget class="QSlider" name="verticalSliderZenith">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="minimum">
+              <number>-90</number>
+             </property>
+             <property name="maximum">
+              <number>90</number>
+             </property>
+             <property name="sliderPosition">
+              <number>0</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="tickInterval">
+              <number>1</number>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="pushButtonSave">
+             <property name="text">
+              <string>Save object</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QComboBox" name="comboBoxProjectType">
+             <item>
+              <property name="text">
+               <string>Parallel</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Perspective</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </item>
         <item>
          <spacer name="verticalSpacer_2">
@@ -580,13 +680,16 @@
       <property name="widgetResizable">
        <bool>true</bool>
       </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
       <widget class="QWidget" name="scrollAreaWidgetContents">
        <property name="geometry">
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>488</width>
-         <height>542</height>
+         <width>708</width>
+         <height>595</height>
         </rect>
        </property>
       </widget>
@@ -599,7 +702,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>789</width>
+     <width>1009</width>
      <height>22</height>
     </rect>
    </property>

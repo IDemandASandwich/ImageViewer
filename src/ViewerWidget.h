@@ -32,6 +32,10 @@ private:
 	QVector<H_edge> edges;
 	QVector<Face> faces;
 
+	QVector3D n;
+	QVector3D u;
+	QVector3D v;
+
 #pragma endregion
 
 public:
@@ -123,11 +127,13 @@ public:
 #pragma endregion
 #pragma region 3D
 	
-	void saveCubeToVTK(int length);
-	void saveUVSphereToVTK(int radius ,int rings, int segments);
+	bool saveCubeToVTK(QString filename, int length);
+	bool saveUVSphereToVTK(QString filename, int radius ,int rings, int segments);
 
-	void loadObject(QString filename);
-	void saveObject(QString filename, int representation = 0);
+	bool loadObject(QString filename);
+	bool saveObject(QString filename, int representation = 0);
+
+	void projectObject(int zenith = 0, int azimuth = 0, int projectType = 0, int distance = 0);
 
 #pragma endregion
 

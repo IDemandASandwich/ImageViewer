@@ -457,14 +457,93 @@ void ImageViewer::on_pushButtonShear_clicked() {
 }
 
 void ImageViewer::on_pushButtonCube_clicked() {
+	QString folder = settings.value("folder_img_save_path", "").toString();
+
+	QString fileFilter = "Image data (*.vtk)";
+	QString fileName = QFileDialog::getSaveFileName(this, "Save image", folder, fileFilter);
+
 	int l = ui->spinBoxCubeSideLength->value();
 
-	vW->saveCubeToVTK(l);
+	if (!fileName.isEmpty()) {
+		QFileInfo fi(fileName);
+		settings.setValue("folder_img_save_path", fi.absoluteDir().absolutePath());
+
+		if (!vW->saveCubeToVTK(fileName, l)) {
+			msgBox.setText("Unable to save image.");
+			msgBox.setIcon(QMessageBox::Warning);
+		}
+		else {
+			msgBox.setText(QString("File %1 saved.").arg(fileName));
+			msgBox.setIcon(QMessageBox::Information);
+		}
+		msgBox.exec();	
+	}
 }
 void ImageViewer::on_pushButtonUVSphere_clicked() {
+	QString folder = settings.value("folder_img_save_path", "").toString();
+
+	QString fileFilter = "Image data (*.vtk)";
+	QString fileName = QFileDialog::getSaveFileName(this, "Save image", folder, fileFilter);
+
 	double radius = ui->spinBoxRadius->value();
 	int rings = ui->spinBoxRings->value();
 	int segments = ui->spinBoxSegments->value();
 
-	vW->saveUVSphereToVTK(radius, rings, segments);
+	if (!fileName.isEmpty()) {
+		QFileInfo fi(fileName);
+		settings.setValue("folder_img_save_path", fi.absoluteDir().absolutePath());
+
+		if (!vW->saveUVSphereToVTK(fileName, radius, rings, segments)) {
+			msgBox.setText("Unable to save image.");
+			msgBox.setIcon(QMessageBox::Warning);
+		}
+		else {
+			msgBox.setText(QString("File %1 saved.").arg(fileName));
+			msgBox.setIcon(QMessageBox::Information);
+		}
+		msgBox.exec();
+	}
+}
+
+void ImageViewer::on_pushButtonLoad_clicked() {
+	QString folder = settings.value("folder_img_load_path", "").toString();
+
+	QString fileFilter = "Object data (*.vtk)";
+	QString fileName = QFileDialog::getOpenFileName(this, "Load object", folder, fileFilter);
+	if (fileName.isEmpty()) { return; }
+
+	QFileInfo fi(fileName);
+	settings.setValue("folder_img_load_path", fi.absoluteDir().absolutePath());
+
+	if (!vW->loadObject(fileName)) {
+		msgBox.setText("Unable to open image.");
+		msgBox.setIcon(QMessageBox::Warning);
+		msgBox.exec();
+	}
+	else {
+		int type = ui->comboBoxProjectType->currentIndex();
+		vW->projectObject();
+	}
+}
+void ImageViewer::on_pushButtonSave_clicked() {
+	QString folder = settings.value("folder_img_save_path", "").toString();
+
+	QString fileFilter = "Image data (*.vtk)";
+	QString fileName = QFileDialog::getSaveFileName(this, "Save image", folder, fileFilter);
+	int representation = ui->comboBoxSaveRepresentation->currentIndex();
+
+	if (!fileName.isEmpty()) {
+		QFileInfo fi(fileName);
+		settings.setValue("folder_img_save_path", fi.absoluteDir().absolutePath());
+
+		if (!vW->saveObject(fileName, representation)) {
+			msgBox.setText("Unable to save image.");
+			msgBox.setIcon(QMessageBox::Warning);
+		}
+		else {
+			msgBox.setText(QString("File %1 saved.").arg(fileName));
+			msgBox.setIcon(QMessageBox::Information);
+		}
+		msgBox.exec();
+	}
 }
