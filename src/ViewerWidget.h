@@ -31,10 +31,7 @@ private:
 	QVector<Vertex> vertices;
 	QVector<H_edge> edges;
 	QVector<Face> faces;
-
-	QVector3D n;
-	QVector3D u;
-	QVector3D v;
+	QVector<QColor> colors;
 
 #pragma endregion
 
@@ -97,7 +94,8 @@ public:
 	void Bresenham(QPoint start, QPoint end, QColor color);
 	void drawCircle(QPoint center, QPoint end, QColor color);
 	void drawCircle(QPoint center, int r, QColor color);
-	void drawPolygon(QVector<QPoint> points, QColor color, QColor triangleColor[3], int algtype = 0, int triangleFillType = 0);
+	void drawPolygon(QVector<QPoint> points, QColor color, QColor triangleColor[3] = {0}, int algtype = 0, int triangleFillType = 0);
+	void drawPolygonWireframe(QVector<QPoint> points, QColor color);
 	void drawType(QColor color, QColor triangleColor[3],int type, int algtype = 0, int triangleFillType = 0);
 
 	void rotateObject(int degrees, int type, QColor color, QColor triangleColor[3], int algtype = 0, int triangleFillType = 0);
@@ -108,7 +106,7 @@ public:
 	QVector<QPoint> cropCB(QPoint start, QPoint end);
 	QVector<QPoint> cropSH(QVector<QPoint> V);
 
-	void showPoints(QVector<QPoint> obj);
+	void showPoints(QVector<QPoint> obj, QColor color = Qt::red);
 
 	void scanLine(QVector<QPoint> obj,QColor color);
 	void fillTriangle(QVector<QPoint> obj, QColor color, int fillType, QColor triangleColor[3]);
@@ -133,7 +131,9 @@ public:
 	bool loadObject(QString filename);
 	bool saveObject(QString filename, int representation = 0);
 
-	void projectObject(int zenith = 0, int azimuth = 0, int projectType = 0, int distance = 0);
+	void projectObject(double zenith = 0, double azimuth = 0, int projectType = 0, int distance = 0, int representation = 0);
+	void projectParallel(int representation);
+	void projectCenter(int representation, int distance);
 
 #pragma endregion
 

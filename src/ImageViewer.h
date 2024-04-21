@@ -16,12 +16,13 @@ private:
 	Ui::ImageViewerClass* ui;
 	ViewerWidget* vW;
 
+	QSettings settings;
+	QMessageBox msgBox;
+
 #pragma region 2D
 
 	QColor globalColor;
 	QColor triangleColor[3];	//Leads to passing unnecessary variables, too bad!
-	QSettings settings;
-	QMessageBox msgBox;
 	int currentPointIndex;
 
 #pragma endregion
@@ -73,4 +74,7 @@ private slots:
 	void on_pushButtonLoad_clicked();
 	void on_pushButtonSave_clicked();
 
+	void on_comboBoxSaveRepresentation_currentIndexChanged(int index);
+	void on_verticalSliderZenith_valueChanged();
+	void on_horizontalSliderAzimuth_valueChanged();
 };

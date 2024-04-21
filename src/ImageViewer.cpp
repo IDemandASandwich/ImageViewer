@@ -456,6 +456,7 @@ void ImageViewer::on_pushButtonShear_clicked() {
 	vW->shearObjectDx(type, globalColor, triangleColor, ui->doubleSpinBoxScaleX->value(), ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 }
 
+// 3D
 void ImageViewer::on_pushButtonCube_clicked() {
 	QString folder = settings.value("folder_img_save_path", "").toString();
 
@@ -522,7 +523,11 @@ void ImageViewer::on_pushButtonLoad_clicked() {
 	}
 	else {
 		int type = ui->comboBoxProjectType->currentIndex();
-		vW->projectObject();
+		int distance = ui->spinBoxDistance->value();
+		int representation = ui->comboBoxSaveRepresentation->currentIndex();
+		double zenith = static_cast<double>(ui->verticalSliderZenith->value()) * M_PI / 180.;
+		double azimuth = static_cast<double>(ui->horizontalSliderAzimuth->value()) * M_PI / 180.;
+		vW->projectObject(zenith, azimuth, type, distance, representation);
 	}
 }
 void ImageViewer::on_pushButtonSave_clicked() {
@@ -546,4 +551,28 @@ void ImageViewer::on_pushButtonSave_clicked() {
 		}
 		msgBox.exec();
 	}
+}
+
+void ImageViewer::on_verticalSliderZenith_valueChanged() {
+	int type = ui->comboBoxProjectType->currentIndex();
+	int distance = ui->spinBoxDistance->value();
+	int representation = ui->comboBoxSaveRepresentation->currentIndex();
+	double zenith = static_cast<double>(ui->verticalSliderZenith->value()) * M_PI / 180.;
+	double azimuth = static_cast<double>(ui->horizontalSliderAzimuth->value()) * M_PI / 180.;
+	vW->projectObject(zenith, azimuth, type, distance, representation);
+}
+void ImageViewer::on_horizontalSliderAzimuth_valueChanged() {
+	int type = ui->comboBoxProjectType->currentIndex();
+	int distance = ui->spinBoxDistance->value();
+	int representation = ui->comboBoxSaveRepresentation->currentIndex();
+	double zenith = static_cast<double>(ui->verticalSliderZenith->value()) * M_PI / 180.;
+	double azimuth = static_cast<double>(ui->horizontalSliderAzimuth->value()) * M_PI / 180.;
+	vW->projectObject(zenith, azimuth, type, distance, representation);
+}
+void ImageViewer::on_comboBoxSaveRepresentation_currentIndexChanged(int index) {
+	int type = ui->comboBoxProjectType->currentIndex();
+	int distance = ui->spinBoxDistance->value();
+	double zenith = static_cast<double>(ui->verticalSliderZenith->value()) * M_PI / 180.;
+	double azimuth = static_cast<double>(ui->horizontalSliderAzimuth->value()) * M_PI / 180.;
+	vW->projectObject(zenith, azimuth, type, distance, index);
 }

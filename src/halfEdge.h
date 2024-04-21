@@ -18,7 +18,7 @@ public:
 		y = v.y();
 		z = v.z();
 		edge = e;
-	};
+	}
 	bool operator==(const Vertex& other) const {
 		return (x == other.x && y == other.y && z == other.z);
 	}

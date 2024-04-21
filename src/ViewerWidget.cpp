@@ -135,8 +135,9 @@ void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType,
 		}
 	}
 
-	if(showpoints)
+	if (showpoints) {
 		showPoints(QVector<QPoint>({ start, end }));
+	}
 
 	switch (algType) {
 	case 0:
@@ -205,9 +206,26 @@ void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, QColor tria
 	else if (points.size() == 3) {
 		fillTriangle(points, color, triangleFillType, triangleColor);
 	}
+	
+	for (int i = 0; i < points.size(); i++) {
+		drawLine(points[i], points[(i + 1) % points.size()], color, algtype, false, false);
+	}
+}
+void ViewerWidget::drawPolygonWireframe(QVector<QPoint> points, QColor color)
+{
+	QVector<QPoint> cropped = cropSH(points);
+
+	if (cropped.isEmpty() == false) {
+		if (cropped.at(0) == QPoint(-1, -1)) {
+			return;
+		}
+		else {
+			points = cropped;
+		}
+	}
 
 	for (int i = 0; i < points.size(); i++) {
-		drawLine(points[i], points[(i + 1) % points.size()], color, algtype, false, showpoints);
+		drawLine(points[i], points[(i + 1) % points.size()], color, 0, false, false);
 	}
 }
 void ViewerWidget::drawType(QColor color, QColor triangleColor[3], int type, int algtype, int triangleFillType) {
@@ -230,9 +248,9 @@ void ViewerWidget::drawType(QColor color, QColor triangleColor[3], int type, int
 	}
 }
 
-void ViewerWidget::showPoints(QVector<QPoint> obj) {
+void ViewerWidget::showPoints(QVector<QPoint> obj, QColor color) {
 	for (const QPoint p : obj) {
-		drawCircle(p, 3, Qt::red);
+		drawCircle(p, 3, color);
 	}
 }
 int ViewerWidget::getClosestPointIndex(QPoint P) {
@@ -1114,8 +1132,9 @@ bool ViewerWidget::loadObject(QString filename) {
 			qDebug() << "Invalid point data";
 			return false;
 		}
-		double x = parts[0].toDouble();
-		double y = parts[1].toDouble();
+		// Put object in center of area
+		double x = parts[0].toDouble() + width() / 2.;
+		double y = parts[1].toDouble() + height() / 2.;
 		double z = parts[2].toDouble();
 		vertices.append(Vertex(x, y, z));
 	}
@@ -1172,6 +1191,16 @@ bool ViewerWidget::loadObject(QString filename) {
 		}
 	}
 	file.close();
+
+	// Random colors
+	for (qsizetype i = 0; i < faces.size() / 2; i++) {
+		QColor randomColor(QRandomGenerator::global()->bounded(256),
+			QRandomGenerator::global()->bounded(256),
+			QRandomGenerator::global()->bounded(256));
+		colors.append(randomColor);
+		colors.append(randomColor);
+	}
+
 	return true;
 }
 bool ViewerWidget::saveObject(QString filename, int representation) {
@@ -1189,9 +1218,13 @@ bool ViewerWidget::saveObject(QString filename, int representation) {
 
 		// TODO: currently saving every edge twice, too bad!
 		if (representation == wireframe) {
-			out << "LINES " << edges.size() << " " << 3 * edges.size() << "\n";
+			out << "LINES " << edges.size() / 2 << " " << 3 * edges.size() / 2 << "\n";
 			for (H_edge& edge : edges) {
-				out << "2 " << vertices.indexOf(*edge.vert_origin) << " " << vertices.indexOf(*edge.pair->vert_origin) << "\n";
+				int v1 = vertices.indexOf(*edge.vert_origin);
+				int v2 = vertices.indexOf(*edge.pair->vert_origin);
+
+				if(v1 < v2)
+					out << "2 " << v1 << " " << v2 << "\n";
 			}
 		}
 
@@ -1211,8 +1244,63 @@ bool ViewerWidget::saveObject(QString filename, int representation) {
 	}
 }
 
-void ViewerWidget::projectObject(int zenith, int azimuth, int projectType, int distance) {
-	n = QVector3D(sin(zenith)*sin(azimuth), );
+void ViewerWidget::projectObject(double zenith, double azimuth, int projectType, int distance, int representation) {
+	enum projecttype{ parallel, center };
+	
+	QVector3D n(sin(zenith) * sin(azimuth), sin(zenith) * cos(azimuth), cos(zenith));
+	QVector3D u(sin(zenith + M_PI_2) * sin(azimuth), sin(zenith + M_PI_2) * cos(azimuth), cos(zenith + M_PI_2));
+	QVector3D v = QVector3D::crossProduct(n, u);
+
+	for (Vertex& vert : vertices) {
+		QVector3D temp = QVector3D(vert.x - width() / 2., vert.y - height() / 2., vert.z);
+		vert.x = QVector3D::dotProduct(temp, v) + width() / 2.;
+		vert.y = QVector3D::dotProduct(temp, u) + height() / 2.;
+		vert.z = QVector3D::dotProduct(temp, n);
+	}
+
+	clear();
+
+	if (projectType == parallel) {
+		projectParallel(representation);
+	}
+	else {
+		projectCenter(representation, distance);
+	}
+
+	update();
+}
+void ViewerWidget::projectParallel(int representation) {
+	enum projectrepresentation { surface, wireframe };
+
+	for (qsizetype i = 0; i < faces.size(); i++) {
+		Face& f = faces[i];
+		QPoint p1(f.edge->vert_origin->x, f.edge->vert_origin->y);
+		QPoint p2(f.edge->pair->vert_origin->x, f.edge->pair->vert_origin->y);
+		QPoint p3(f.edge->edge_prev->vert_origin->x, f.edge->edge_prev->vert_origin->y);
+		QVector<QPoint> T = { p1, p2, p3 };
+		
+		if (representation == surface) {
+			drawPolygon(T, colors[i]);
+		}
+		else if(representation == wireframe){
+			drawPolygonWireframe(T, Qt::black);
+		}
+		else {
+			showPoints(T, Qt::black);
+		}
+	}
+}
+void ViewerWidget::projectCenter(int representation, int d) {
+	enum projectrepresentation { surface, wireframe };
+
+	for (qsizetype i = 0; i < faces.size(); i++) {
+		Face& f = faces[i];
+		double x1 = f.edge->vert_origin->x, y1 = f.edge->vert_origin->y, z1 = f.edge->vert_origin->z;
+		double x2 = f.edge->pair->vert_origin->x, y2 = f.edge->pair->vert_origin->y, z2 = f.edge->pair->vert_origin->z;
+		double x3 = f.edge->edge_prev->vert_origin->x, y3 = f.edge->edge_prev->vert_origin->y, z3 = f.edge->edge_prev->vert_origin->z;
+		QVector<QPoint> T = { QPoint(), QPoint(), QPoint() };
+
+	}
 }
 
 #pragma endregion
