@@ -1098,6 +1098,11 @@ bool ViewerWidget::saveUVSphereToVTK(QString filename, int r, int rings, int seg
 }
 
 bool ViewerWidget::loadObject(QString filename) {
+	QVector<Vertex>& vertices = obj.vertices;
+	QVector<H_edge>& edges = obj.edges;
+	QVector<Face>& faces = obj.faces;
+	QVector<QColor>& colors = obj.colors;
+
 	if (!vertices.isEmpty()) { vertices.clear(); }
 	if (!edges.isEmpty()) { edges.clear(); }
 	if (!faces.isEmpty()) { faces.clear(); }
@@ -1205,6 +1210,9 @@ bool ViewerWidget::loadObject(QString filename) {
 }
 bool ViewerWidget::saveObject(QString filename, int representation) {
 	enum types{surface, wireframe, points};
+	QVector<Vertex>& vertices = obj.vertices;
+	QVector<H_edge>& edges = obj.edges;
+	QVector<Face>& faces = obj.faces;
 
 	QFile file(filename);
 
@@ -1246,6 +1254,7 @@ bool ViewerWidget::saveObject(QString filename, int representation) {
 
 void ViewerWidget::projectObject(double zenith, double azimuth, int projectType, int distance, int representation) {
 	enum projecttype{ parallel, center };
+	QVector<Vertex>& vertices = obj.vertices;
 	
 	QVector3D n(sin(zenith) * sin(azimuth), sin(zenith) * cos(azimuth), cos(zenith));
 	QVector3D u(sin(zenith + M_PI_2) * sin(azimuth), sin(zenith + M_PI_2) * cos(azimuth), cos(zenith + M_PI_2));
@@ -1271,6 +1280,8 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 }
 void ViewerWidget::projectParallel(int representation) {
 	enum projectrepresentation { surface, wireframe };
+	QVector<Face>& faces = obj.faces;
+	QVector<QColor>& colors = obj.colors;
 
 	for (qsizetype i = 0; i < faces.size(); i++) {
 		Face& f = faces[i];
@@ -1293,14 +1304,6 @@ void ViewerWidget::projectParallel(int representation) {
 void ViewerWidget::projectCenter(int representation, int d) {
 	enum projectrepresentation { surface, wireframe };
 
-	for (qsizetype i = 0; i < faces.size(); i++) {
-		Face& f = faces[i];
-		double x1 = f.edge->vert_origin->x, y1 = f.edge->vert_origin->y, z1 = f.edge->vert_origin->z;
-		double x2 = f.edge->pair->vert_origin->x, y2 = f.edge->pair->vert_origin->y, z2 = f.edge->pair->vert_origin->z;
-		double x3 = f.edge->edge_prev->vert_origin->x, y3 = f.edge->edge_prev->vert_origin->y, z3 = f.edge->edge_prev->vert_origin->z;
-		QVector<QPoint> T = { QPoint(), QPoint(), QPoint() };
-
-	}
 }
 
 #pragma endregion

@@ -28,10 +28,7 @@ private:
 #pragma endregion
 #pragma region 3D
 
-	QVector<Vertex> vertices;
-	QVector<H_edge> edges;
-	QVector<Face> faces;
-	QVector<QColor> colors;
+	object3D obj;
 
 #pragma endregion
 
