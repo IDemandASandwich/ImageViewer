@@ -1259,25 +1259,15 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 	QVector3D u(sin(zenith + M_PI_2) * sin(azimuth), sin(zenith + M_PI_2) * cos(azimuth), cos(zenith + M_PI_2));
 	QVector3D v = -1 * QVector3D::crossProduct(n, u);
 
-	//qDebug() << n << "\n" << u << "\n" << v;
-
 	clear();
 	for (Face& f : obj.faces) {
-		QVector3D p1 = QVector3D(f.edge->vert_origin->x, f.edge->vert_origin->y, f.edge->vert_origin->z);
-		QVector3D p2 = QVector3D(f.edge->pair->vert_origin->x, f.edge->pair->vert_origin->y, f.edge->pair->vert_origin->z);
-		QVector3D p3 = QVector3D(f.edge->edge_prev->vert_origin->x, f.edge->edge_prev->vert_origin->y, f.edge->edge_prev->vert_origin->z);
+		QVector3D p1o(f.edge->vert_origin->x, f.edge->vert_origin->y, f.edge->vert_origin->z);
+		QVector3D p2o(f.edge->pair->vert_origin->x, f.edge->pair->vert_origin->y, f.edge->pair->vert_origin->z);
+		QVector3D p3o(f.edge->edge_prev->vert_origin->x, f.edge->edge_prev->vert_origin->y, f.edge->edge_prev->vert_origin->z);
 
-		p1.setX(QVector3D::dotProduct(p1, v) + width() / 2.);
-		p1.setY(QVector3D::dotProduct(p1, u) + height() / 2.);
-		p1.setZ(QVector3D::dotProduct(p1, n));
-
-		p2.setX(QVector3D::dotProduct(p2, v) + width() / 2.);
-		p2.setY(QVector3D::dotProduct(p2, u) + height() / 2.);
-		p2.setZ(QVector3D::dotProduct(p2, n));
-
-		p3.setX(QVector3D::dotProduct(p3, v) + width() / 2.);
-		p3.setY(QVector3D::dotProduct(p3, u) + height() / 2.);
-		p3.setZ(QVector3D::dotProduct(p3, n));
+		QVector3D p1(QVector3D::dotProduct(p1o, v) + width() / 2., QVector3D::dotProduct(p1o, u) + height() / 2., QVector3D::dotProduct(p1o, n));
+		QVector3D p2(QVector3D::dotProduct(p2o, v) + width() / 2., QVector3D::dotProduct(p2o, u) + height() / 2., QVector3D::dotProduct(p2o, n));
+		QVector3D p3(QVector3D::dotProduct(p3o, v) + width() / 2., QVector3D::dotProduct(p3o, u) + height() / 2., QVector3D::dotProduct(p3o, n));
 
 		QVector<QPoint> T = { QPoint(p1.x(), p1.y()), QPoint(p2.x(), p2.y()), QPoint(p3.x(), p3.y())};
 
