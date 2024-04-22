@@ -29,6 +29,7 @@ private:
 #pragma region 3D
 
 	object3D obj;
+	QVector<QVector<double>> depth;
 
 #pragma endregion
 
@@ -129,6 +130,8 @@ public:
 	bool saveObject(QString filename, bool wireframe);
 
 	void projectObject(double zenith = 0, double azimuth = 0, int projectType = 0, int distance = 0, bool wireframe = false);
+	void zBuffer(QVector<QVector<QColor>>& F, QVector<QVector<double>>& Z, QVector<QPoint> T, QVector<QVector3D> p, QColor faceColor);
+	double interpolateZ(double x, double y, QVector<QPoint> T, QVector<QVector3D> p);
 
 #pragma endregion
 
