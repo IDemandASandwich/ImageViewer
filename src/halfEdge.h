@@ -41,6 +41,9 @@ public:
 
 	Face() : edge(nullptr) {};
 	Face(H_edge* e) : edge(e) {};
+	bool operator==(const Face& other) const {
+		return edge == other.edge;
+	}
 };
 
 class H_edge {
@@ -69,5 +72,4 @@ public:
 	QVector<QColor> colors;
 
 	object3D() :vertices(), edges(), faces(), colors() {};
-
 };

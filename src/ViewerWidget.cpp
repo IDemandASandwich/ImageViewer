@@ -1137,9 +1137,8 @@ bool ViewerWidget::loadObject(QString filename) {
 			qDebug() << "Invalid point data";
 			return false;
 		}
-		// Put object in center of area
-		double x = parts[0].toDouble() + width() / 2.;
-		double y = parts[1].toDouble() + height() / 2.;
+		double x = parts[0].toDouble();
+		double y = parts[1].toDouble();
 		double z = parts[2].toDouble();
 		vertices.append(Vertex(x, y, z));
 	}
@@ -1254,56 +1253,48 @@ bool ViewerWidget::saveObject(QString filename, int representation) {
 
 void ViewerWidget::projectObject(double zenith, double azimuth, int projectType, int distance, int representation) {
 	enum projecttype{ parallel, center };
-	QVector<Vertex>& vertices = obj.vertices;
-	
-	QVector3D n(sin(zenith) * sin(azimuth), sin(zenith) * cos(azimuth), cos(zenith));
-	QVector3D u(sin(zenith + M_PI_2) * sin(azimuth), sin(zenith + M_PI_2) * cos(azimuth), cos(zenith + M_PI_2));
-	QVector3D v = QVector3D::crossProduct(n, u);
+	enum projectrepresentation { surface, wireframe };
 
-	for (Vertex& vert : vertices) {
-		QVector3D temp = QVector3D(vert.x - width() / 2., vert.y - height() / 2., vert.z);
-		vert.x = QVector3D::dotProduct(temp, v) + width() / 2.;
-		vert.y = QVector3D::dotProduct(temp, u) + height() / 2.;
-		vert.z = QVector3D::dotProduct(temp, n);
-	}
+	QVector3D n(sin(zenith) * sin(azimuth), sin(zenith) * cos(azimuth), cos(zenith)); 
+	QVector3D u(sin(zenith + M_PI_2) * sin(azimuth), sin(zenith + M_PI_2) * cos(azimuth), cos(zenith + M_PI_2));
+	QVector3D v = -1 * QVector3D::crossProduct(n, u);
+
+	//qDebug() << n << "\n" << u << "\n" << v;
 
 	clear();
+	for (Face& f : obj.faces) {
+		QVector3D p1 = QVector3D(f.edge->vert_origin->x, f.edge->vert_origin->y, f.edge->vert_origin->z);
+		QVector3D p2 = QVector3D(f.edge->pair->vert_origin->x, f.edge->pair->vert_origin->y, f.edge->pair->vert_origin->z);
+		QVector3D p3 = QVector3D(f.edge->edge_prev->vert_origin->x, f.edge->edge_prev->vert_origin->y, f.edge->edge_prev->vert_origin->z);
 
-	if (projectType == parallel) {
-		projectParallel(representation);
-	}
-	else {
-		projectCenter(representation, distance);
-	}
+		p1.setX(QVector3D::dotProduct(p1, v) + width() / 2.);
+		p1.setY(QVector3D::dotProduct(p1, u) + height() / 2.);
+		p1.setZ(QVector3D::dotProduct(p1, n));
 
-	update();
-}
-void ViewerWidget::projectParallel(int representation) {
-	enum projectrepresentation { surface, wireframe };
-	QVector<Face>& faces = obj.faces;
-	QVector<QColor>& colors = obj.colors;
+		p2.setX(QVector3D::dotProduct(p2, v) + width() / 2.);
+		p2.setY(QVector3D::dotProduct(p2, u) + height() / 2.);
+		p2.setZ(QVector3D::dotProduct(p2, n));
 
-	for (qsizetype i = 0; i < faces.size(); i++) {
-		Face& f = faces[i];
-		QPoint p1(f.edge->vert_origin->x, f.edge->vert_origin->y);
-		QPoint p2(f.edge->pair->vert_origin->x, f.edge->pair->vert_origin->y);
-		QPoint p3(f.edge->edge_prev->vert_origin->x, f.edge->edge_prev->vert_origin->y);
-		QVector<QPoint> T = { p1, p2, p3 };
-		
-		if (representation == surface) {
-			drawPolygon(T, colors[i]);
-		}
-		else if(representation == wireframe){
-			drawPolygonWireframe(T, Qt::black);
+		p3.setX(QVector3D::dotProduct(p3, v) + width() / 2.);
+		p3.setY(QVector3D::dotProduct(p3, u) + height() / 2.);
+		p3.setZ(QVector3D::dotProduct(p3, n));
+
+		QVector<QPoint> T = { QPoint(p1.x(), p1.y()), QPoint(p2.x(), p2.y()), QPoint(p3.x(), p3.y())};
+
+		if (projectType == parallel) {
+			if (representation == surface) {
+				drawPolygon(T, obj.colors[obj.faces.indexOf(f)]);
+			}
+			else if (representation == wireframe) {
+				drawPolygonWireframe(T, Qt::black);
+			}
+			else {
+				showPoints(T, Qt::black);
+			}
 		}
 		else {
-			showPoints(T, Qt::black);
+
 		}
 	}
+	update();
 }
-void ViewerWidget::projectCenter(int representation, int d) {
-	enum projectrepresentation { surface, wireframe };
-
-}
-
-#pragma endregion

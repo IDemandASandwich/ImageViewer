@@ -129,8 +129,6 @@ public:
 	bool saveObject(QString filename, int representation = 0);
 
 	void projectObject(double zenith = 0, double azimuth = 0, int projectType = 0, int distance = 0, int representation = 0);
-	void projectParallel(int representation);
-	void projectCenter(int representation, int distance);
 
 #pragma endregion
 
