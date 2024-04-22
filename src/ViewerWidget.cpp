@@ -636,8 +636,6 @@ void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
 
 	for (int i = 0; i < ymax - ymin; i++) {
 		for (const edge& e : E) {
-			
-
 			if (i == (e.start.y() - ymin)) {
 				TH[i].append(info(e.end.y() - e.start.y(), static_cast<double>(e.start.x()), 1. / e.m));
 			}
@@ -1256,9 +1254,13 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 	QVector3D n(sin(zenith) * sin(azimuth), sin(zenith) * cos(azimuth), cos(zenith)); 
 	QVector3D u(sin(zenith + M_PI_2) * sin(azimuth), sin(zenith + M_PI_2) * cos(azimuth), cos(zenith + M_PI_2));
 	QVector3D v = -1 * QVector3D::crossProduct(n, u);
+
+	QVector<QVector<QColor>> F(width(), QVector<QColor>(height(), Qt::white));
+	QVector<QVector<double>> Z(width(), QVector<double>(height(), -DBL_MAX));
 	
 	clear();
 	for (Face& f : obj.faces) {
+		// Transform
 		QVector3D p1o(f.edge->vert_origin->x, f.edge->vert_origin->y, f.edge->vert_origin->z);
 		QVector3D p2o(f.edge->pair->vert_origin->x, f.edge->pair->vert_origin->y, f.edge->pair->vert_origin->z);
 		QVector3D p3o(f.edge->edge_prev->vert_origin->x, f.edge->edge_prev->vert_origin->y, f.edge->edge_prev->vert_origin->z);
@@ -1267,6 +1269,7 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 		QVector3D p2(QVector3D::dotProduct(p2o, v) + width() / 2., QVector3D::dotProduct(p2o, u) + height() / 2., QVector3D::dotProduct(p2o, n));
 		QVector3D p3(QVector3D::dotProduct(p3o, v) + width() / 2., QVector3D::dotProduct(p3o, u) + height() / 2., QVector3D::dotProduct(p3o, n));
 
+		// Projected coords
 		QVector<QPoint> T;
 
 		if (projectType == parallel) {
@@ -1282,8 +1285,11 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 			drawPolygonWireframe(T, Qt::black);
 		}
 		else {
-			drawPolygon(T, obj.colors[obj.faces.indexOf(f)]);
+			// zBuffer
+			
 		}
 	}
 	update();
 }
+
+#pragma endregion
