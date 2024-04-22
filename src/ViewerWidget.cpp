@@ -1304,129 +1304,81 @@ void ViewerWidget::zBuffer(QVector<QVector<QColor>>& F, QVector<QVector<double>>
 			return a.x() < b.x();
 		});
 
-	if (T.at(0).y() == T.at(1).y()) {
+	QPoint p0 = T.at(0);
+	QPoint p1 = T.at(1);
+	QPoint p2 = T.at(2);
+
+	auto slope = [](QPoint& a, QPoint& b) {return static_cast<double>(a.y() - b.y()) / static_cast<double>(a.x() - b.x()); };
+
+	if (p0.y() == p1.y()) {
 		//down
-		double m1 = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
-		double m2 = static_cast<double>(T.at(2).y() - T.at(1).y()) / static_cast<double>(T.at(2).x() - T.at(1).x());
+		double m1 = slope(p2, p0);
+		double m2 = slope(p2, p1);
+		int ymin = p0.y();
+		int ymax = p2.y();
+		double x1 = static_cast<double>(p0.x());
+		double x2 = static_cast<double>(p1.x());
 
-		int y = T.at(0).y();
-		int ymax = T.at(2).y();
-		double x1 = static_cast<double>(T.at(0).x());
-		double x2 = static_cast<double>(T.at(1).x());
-
-		for (y; y < ymax; y++) {
-			if (x1 != x2) {
-				for (double x = ceil(x1); x < ceil(x2 + 1); x++) {
-					double z = interpolateZ(x, y, T, p);
-
-					if (Z[x][y] < z) {
-						Z[x][y] = z;
-						setPixel(x, y,faceColor);
-					}
-				}
-			}
-			x1 += 1. / m1;
-			x2 += 1. / m2;
-		}
+		zFill(x1, x2, m1, m2, ymin, ymax, Z, T, p, faceColor);
 	}
-	else if (T.at(1).y() == T.at(2).y()) {
+	else if (p1.y() == p2.y()) {
 		//up
-		double m1 = static_cast<double>(T.at(1).y() - T.at(0).y()) / static_cast<double>(T.at(1).x() - T.at(0).x());
-		double m2 = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
-
-		int y = T.at(0).y();
-		int ymax = T.at(1).y();
-		double x1 = static_cast<double>(T.at(0).x());
+		double m1 = slope(p1, p0);
+		double m2 = slope(p2, p0);
+		int ymin = p0.y();
+		int ymax = p1.y();
+		double x1 = static_cast<double>(p0.x());
 		double x2 = x1;
 
-		for (y; y < ymax; y++) {
-			if (x1 != x2) {
-				for (double x = ceil(x1); x < ceil(x2 + 1); x++) {
-					double z = interpolateZ(x, y, T, p);
-
-					if (Z[x][y] < z) {
-						Z[x][y] = z;
-						setPixel(x, y, faceColor);
-					}
-				}
-			}
-			x1 += 1. / m1;
-			x2 += 1. / m2;
-		}
+		zFill(x1, x2, m1, m2, ymin, ymax, Z, T, p, faceColor);
 	}
 	else {
-		double m = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
+		double m = slope(p2, p0);
 
-		QPoint P(((T.at(1).y() - T.at(0).y()) / m) + T.at(0).x(), T.at(1).y());
+		QPoint P(((p1.y() - p0.y()) / m) + p0.x(), p1.y());
 
 		//down
-		QVector<QPoint> Tt = T;
-		if (Tt.at(1).x() < P.x()) {
+		if (p1.x() < P.x()) {
 			//T(T0,T1,T2) -> T(T1,P,T2)
-			Tt[0] = Tt[1];
-			Tt[1] = P;
+			p0 = p1;
+			p1 = P;
 		}
 		else {
 			//T(T0,T1,T2) -> T(P,T1,T2)
-			Tt[0] = P;
+			p0 = P;
 		}
 
-		double m1 = static_cast<double>(Tt.at(2).y() - Tt.at(0).y()) / static_cast<double>(Tt.at(2).x() - Tt.at(0).x());
-		double m2 = static_cast<double>(Tt.at(2).y() - Tt.at(1).y()) / static_cast<double>(Tt.at(2).x() - Tt.at(1).x());
+		double m1 = slope(p2, p0);
+		double m2 = slope(p2, p1);
+		int ymin = p0.y();
+		int ymax = p2.y();
+		double x1 = static_cast<double>(p0.x());
+		double x2 = static_cast<double>(p1.x());
 
-		int y = Tt.at(0).y();
-		int ymax = Tt.at(2).y();
-		double x1 = static_cast<double>(Tt.at(0).x());
-		double x2 = static_cast<double>(Tt.at(1).x());
+		zFill(x1, x2, m1, m2, ymin, ymax, Z, T, p, faceColor);
 
-		for (y; y < ymax; y++) {
-			if (x1 != x2) {
-				for (double x = ceil(x1); x < ceil(x2 + 1); x++) {
-					double z = interpolateZ(x, y, T, p);
-
-					if (Z[x][y] < z) {
-						Z[x][y] = z;
-						setPixel(x, y, faceColor);
-					}
-				}
-			}
-			x1 += 1. / m1;
-			x2 += 1. / m2;
-		}
 		//up
-		Tt = T;
-		if (Tt.at(1).x() < P.x()) {
+		p0 = T[0];
+		p1 = T[1];
+		p2 = T[2];
+		if (p1.x() < P.x()) {
 			//T(T0,T1,T2) -> T(T0,T1,P)
-			Tt[2] = P;
+			p2 = P;
 		}
 		else {
 			//T(T0,T1,T2) -> T(T0,P,T1)
-			Tt[2] = Tt[1];
-			Tt[1] = P;
+			p2 = p1;
+			p1 = P;
 		}
 
-		m1 = static_cast<double>(Tt.at(1).y() - Tt.at(0).y()) / static_cast<double>(Tt.at(1).x() - Tt.at(0).x());
-		m2 = static_cast<double>(Tt.at(2).y() - Tt.at(0).y()) / static_cast<double>(Tt.at(2).x() - Tt.at(0).x());
-
-		y = Tt.at(0).y();
-		ymax = Tt.at(1).y();
-		x1 = static_cast<double>(Tt.at(0).x());
+		m1 = slope(p1, p0);
+		m2 = slope(p2, p0);
+		ymin = p0.y();
+		ymax = p1.y();
+		x1 = static_cast<double>(p0.x());
 		x2 = x1;
 
-		for (y; y < ymax; y++) {
-			if (x1 != x2) {
-				for (double x = ceil(x1); x < ceil(x2 + 1); x++) {
-					double z = interpolateZ(x, y, T, p);
-
-					if (Z[x][y] < z) {
-						Z[x][y] = z;
-						setPixel(x, y, faceColor);
-					}
-				}
-			}
-			x1 += 1. / m1;
-			x2 += 1. / m2;
-		}
+		zFill(x1, x2, m1, m2, ymin, ymax, Z, T, p, faceColor);
 	}
 }
 double ViewerWidget::interpolateZ(double x, double y, QVector<QPoint> T, QVector<QVector3D> p) {
@@ -1439,5 +1391,22 @@ double ViewerWidget::interpolateZ(double x, double y, QVector<QPoint> T, QVector
 
 	return (lambda0 * p[0].z() + lambda1 * p[1].z() + lambda2 * p[2].z());
 }
+void ViewerWidget::zFill(double x1, double x2, double m1, double m2, double ymin, double ymax, QVector<QVector<double>>& Z, QVector<QPoint>& T, QVector<QVector3D>& p, QColor& faceColor) {
+	for (int y = ymin; y < ymax; y++) {
+		if (x1 != x2) {
+			for (double x = ceil(x1); x < ceil(x2 + 1); x++) {
+				double z = interpolateZ(x, y, T, p);
+
+				if (Z[x][y] < z) {
+					Z[x][y] = z;
+					setPixel(x, y, faceColor);
+				}
+			}
+		}
+		x1 += 1. / m1;
+		x2 += 1. / m2;
+	}
+}
+
 
 #pragma endregion

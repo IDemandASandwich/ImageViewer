@@ -132,6 +132,7 @@ public:
 	void projectObject(double zenith = 0, double azimuth = 0, int projectType = 0, int distance = 0, bool wireframe = false);
 	void zBuffer(QVector<QVector<QColor>>& F, QVector<QVector<double>>& Z, QVector<QPoint> T, QVector<QVector3D> p, QColor faceColor);
 	double interpolateZ(double x, double y, QVector<QPoint> T, QVector<QVector3D> p);
+	void zFill(double x1, double x2, double m1, double m2, double ymin, double ymax, QVector<QVector<double>>& Z, QVector<QPoint>& T, QVector<QVector3D>& p, QColor& faceColor);
 
 #pragma endregion
 
