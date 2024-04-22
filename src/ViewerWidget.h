@@ -126,9 +126,9 @@ public:
 	bool saveUVSphereToVTK(QString filename, int radius ,int rings, int segments);
 
 	bool loadObject(QString filename);
-	bool saveObject(QString filename, int representation = 0);
+	bool saveObject(QString filename, bool wireframe);
 
-	void projectObject(double zenith = 0, double azimuth = 0, int projectType = 0, int distance = 0, int representation = 0);
+	void projectObject(double zenith = 0, double azimuth = 0, int projectType = 0, int distance = 0, bool wireframe = false);
 
 #pragma endregion
 

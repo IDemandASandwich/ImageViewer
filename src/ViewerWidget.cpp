@@ -1207,8 +1207,7 @@ bool ViewerWidget::loadObject(QString filename) {
 
 	return true;
 }
-bool ViewerWidget::saveObject(QString filename, int representation) {
-	enum types{surface, wireframe, points};
+bool ViewerWidget::saveObject(QString filename, bool wireframe) {
 	QVector<Vertex>& vertices = obj.vertices;
 	QVector<H_edge>& edges = obj.edges;
 	QVector<Face>& faces = obj.faces;
@@ -1224,7 +1223,7 @@ bool ViewerWidget::saveObject(QString filename, int representation) {
 		}
 
 		// TODO: currently saving every edge twice, too bad!
-		if (representation == wireframe) {
+		if (wireframe) {
 			out << "LINES " << edges.size() / 2 << " " << 3 * edges.size() / 2 << "\n";
 			for (H_edge& edge : edges) {
 				int v1 = vertices.indexOf(*edge.vert_origin);
@@ -1235,7 +1234,7 @@ bool ViewerWidget::saveObject(QString filename, int representation) {
 			}
 		}
 
-		if (representation == surface) {
+		if (!wireframe) {
 			out << "POLYGONS " << faces.size() << " " << 4 * faces.size() << "\n";
 			for (Face& face : faces) {
 				out << "3 " << vertices.indexOf(*face.edge->vert_origin) << " " << vertices.indexOf(*face.edge->edge_next->vert_origin) << " " << vertices.indexOf(*face.edge->edge_prev->vert_origin) << "\n";
@@ -1251,14 +1250,13 @@ bool ViewerWidget::saveObject(QString filename, int representation) {
 	}
 }
 
-void ViewerWidget::projectObject(double zenith, double azimuth, int projectType, int distance, int representation) {
-	enum projecttype{ parallel, center };
-	enum projectrepresentation { surface, wireframe };
+void ViewerWidget::projectObject(double zenith, double azimuth, int projectType, int d, bool wireframe) {
+	enum projecttype{ parallel, perspective };
 
 	QVector3D n(sin(zenith) * sin(azimuth), sin(zenith) * cos(azimuth), cos(zenith)); 
 	QVector3D u(sin(zenith + M_PI_2) * sin(azimuth), sin(zenith + M_PI_2) * cos(azimuth), cos(zenith + M_PI_2));
 	QVector3D v = -1 * QVector3D::crossProduct(n, u);
-
+	
 	clear();
 	for (Face& f : obj.faces) {
 		QVector3D p1o(f.edge->vert_origin->x, f.edge->vert_origin->y, f.edge->vert_origin->z);
@@ -1269,21 +1267,22 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 		QVector3D p2(QVector3D::dotProduct(p2o, v) + width() / 2., QVector3D::dotProduct(p2o, u) + height() / 2., QVector3D::dotProduct(p2o, n));
 		QVector3D p3(QVector3D::dotProduct(p3o, v) + width() / 2., QVector3D::dotProduct(p3o, u) + height() / 2., QVector3D::dotProduct(p3o, n));
 
-		QVector<QPoint> T = { QPoint(p1.x(), p1.y()), QPoint(p2.x(), p2.y()), QPoint(p3.x(), p3.y())};
+		QVector<QPoint> T;
 
 		if (projectType == parallel) {
-			if (representation == surface) {
-				drawPolygon(T, obj.colors[obj.faces.indexOf(f)]);
-			}
-			else if (representation == wireframe) {
-				drawPolygonWireframe(T, Qt::black);
-			}
-			else {
-				showPoints(T, Qt::black);
-			}
+			T = { QPoint(p1.x(), p1.y()), QPoint(p2.x(), p2.y()), QPoint(p3.x(), p3.y()) };
 		}
 		else {
+			T = { QPoint(d * p1.x() / (d - p1.z()), d * p1.y() / (d - p1.z())),
+				QPoint(d* p2.x() / (d - p2.z()), d* p2.y() / (d - p2.z())),
+				QPoint(d* p3.x() / (d - p3.z()), d* p3.y() / (d - p3.z())) };
+		}
 
+		if (wireframe) {
+			drawPolygonWireframe(T, Qt::black);
+		}
+		else {
+			drawPolygon(T, obj.colors[obj.faces.indexOf(f)]);
 		}
 	}
 	update();

@@ -457,6 +457,21 @@ void ImageViewer::on_pushButtonShear_clicked() {
 }
 
 // 3D
+void ImageViewer::drawObject3D() {
+	enum types { parallel, perspective };
+	int distance = ui->spinBoxDistance->value();
+	bool wireframe = ui->checkBoxWireframe->isChecked();
+	double zenith = static_cast<double>(ui->verticalSliderZenith->value()) * M_PI / 180.;
+	double azimuth = static_cast<double>(ui->horizontalSliderAzimuth->value()) * M_PI / 180.;
+	int type = 0;
+	if (ui->radioButtonParallel->isChecked())
+		type = parallel;
+	else
+		type = perspective;
+
+	vW->projectObject(zenith, azimuth, type, distance, wireframe);
+}
+
 void ImageViewer::on_pushButtonCube_clicked() {
 	QString folder = settings.value("folder_img_save_path", "").toString();
 
@@ -522,12 +537,7 @@ void ImageViewer::on_pushButtonLoad_clicked() {
 		msgBox.exec();
 	}
 	else {
-		int type = ui->comboBoxProjectType->currentIndex();
-		int distance = ui->spinBoxDistance->value();
-		int representation = ui->comboBoxSaveRepresentation->currentIndex();
-		double zenith = static_cast<double>(ui->verticalSliderZenith->value()) * M_PI / 180.;
-		double azimuth = static_cast<double>(ui->horizontalSliderAzimuth->value()) * M_PI / 180.;
-		vW->projectObject(zenith, azimuth, type, distance, representation);
+		drawObject3D();
 	}
 }
 void ImageViewer::on_pushButtonSave_clicked() {
@@ -535,13 +545,13 @@ void ImageViewer::on_pushButtonSave_clicked() {
 
 	QString fileFilter = "Image data (*.vtk)";
 	QString fileName = QFileDialog::getSaveFileName(this, "Save image", folder, fileFilter);
-	int representation = ui->comboBoxSaveRepresentation->currentIndex();
+	bool wireframe = ui->checkBoxWireframe->isChecked();
 
 	if (!fileName.isEmpty()) {
 		QFileInfo fi(fileName);
 		settings.setValue("folder_img_save_path", fi.absoluteDir().absolutePath());
 
-		if (!vW->saveObject(fileName, representation)) {
+		if (!vW->saveObject(fileName, wireframe)) {
 			msgBox.setText("Unable to save image.");
 			msgBox.setIcon(QMessageBox::Warning);
 		}
@@ -553,26 +563,18 @@ void ImageViewer::on_pushButtonSave_clicked() {
 	}
 }
 
+void ImageViewer::on_checkBoxWireframe_stateChanged() {
+	drawObject3D();
+}
+void ImageViewer::on_radioButtonParallel_toggled() {
+	drawObject3D();
+}
 void ImageViewer::on_verticalSliderZenith_valueChanged() {
-	int type = ui->comboBoxProjectType->currentIndex();
-	int distance = ui->spinBoxDistance->value();
-	int representation = ui->comboBoxSaveRepresentation->currentIndex();
-	double zenith = static_cast<double>(ui->verticalSliderZenith->value()) * M_PI / 180.;
-	double azimuth = static_cast<double>(ui->horizontalSliderAzimuth->value()) * M_PI / 180.;
-	vW->projectObject(zenith, azimuth, type, distance, representation);
+	drawObject3D();
 }
 void ImageViewer::on_horizontalSliderAzimuth_valueChanged() {
-	int type = ui->comboBoxProjectType->currentIndex();
-	int distance = ui->spinBoxDistance->value();
-	int representation = ui->comboBoxSaveRepresentation->currentIndex();
-	double zenith = static_cast<double>(ui->verticalSliderZenith->value()) * M_PI / 180.;
-	double azimuth = static_cast<double>(ui->horizontalSliderAzimuth->value()) * M_PI / 180.;
-	vW->projectObject(zenith, azimuth, type, distance, representation);
+	drawObject3D();
 }
-void ImageViewer::on_comboBoxSaveRepresentation_currentIndexChanged(int index) {
-	int type = ui->comboBoxProjectType->currentIndex();
-	int distance = ui->spinBoxDistance->value();
-	double zenith = static_cast<double>(ui->verticalSliderZenith->value()) * M_PI / 180.;
-	double azimuth = static_cast<double>(ui->horizontalSliderAzimuth->value()) * M_PI / 180.;
-	vW->projectObject(zenith, azimuth, type, distance, index);
+void ImageViewer::on_spinBoxDistance_valueChanged() {
+	drawObject3D();
 }

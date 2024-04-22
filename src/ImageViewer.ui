@@ -41,7 +41,7 @@
          <x>0</x>
          <y>0</y>
          <width>275</width>
-         <height>558</height>
+         <height>570</height>
         </rect>
        </property>
        <attribute name="label">
@@ -468,14 +468,14 @@
          <x>0</x>
          <y>0</y>
          <width>275</width>
-         <height>558</height>
+         <height>570</height>
         </rect>
        </property>
        <attribute name="label">
         <string>3D</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_6">
-        <item>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
            <widget class="QGroupBox" name="groupBoxSimples">
@@ -483,35 +483,11 @@
              <bool>true</bool>
             </property>
             <property name="title">
-             <string>simples</string>
+             <string>Tools</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout">
              <item>
               <layout class="QGridLayout" name="gridLayout_7">
-               <item row="0" column="2">
-                <widget class="QPushButton" name="pushButtonUVSphere">
-                 <property name="text">
-                  <string>UV Sphere</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="3">
-                <widget class="QPushButton" name="pushButtonCube">
-                 <property name="text">
-                  <string>Cube</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="2">
-                <widget class="QSpinBox" name="spinBoxRings">
-                 <property name="prefix">
-                  <string>Rings: </string>
-                 </property>
-                 <property name="minimum">
-                  <number>1</number>
-                 </property>
-                </widget>
-               </item>
                <item row="1" column="2">
                 <widget class="QSpinBox" name="spinBoxRadius">
                  <property name="prefix">
@@ -528,7 +504,55 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="3">
+               <item row="0" column="2">
+                <widget class="QPushButton" name="pushButtonUVSphere">
+                 <property name="text">
+                  <string>UV Sphere</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="2">
+                <widget class="QSpinBox" name="spinBoxSegments">
+                 <property name="prefix">
+                  <string>Segments: </string>
+                 </property>
+                 <property name="minimum">
+                  <number>3</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4">
+                <widget class="QPushButton" name="pushButtonCube">
+                 <property name="text">
+                  <string>Cube</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="2">
+                <widget class="QSpinBox" name="spinBoxRings">
+                 <property name="prefix">
+                  <string>Rings: </string>
+                 </property>
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="4">
+                <widget class="QPushButton" name="pushButtonLoad">
+                 <property name="text">
+                  <string>Load object</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="4">
+                <widget class="QPushButton" name="pushButtonSave">
+                 <property name="text">
+                  <string>Save object</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="4">
                 <widget class="QSpinBox" name="spinBoxCubeSideLength">
                  <property name="suffix">
                   <string/>
@@ -547,16 +571,6 @@
                  </property>
                 </widget>
                </item>
-               <item row="3" column="2">
-                <widget class="QSpinBox" name="spinBoxSegments">
-                 <property name="prefix">
-                  <string>Segments: </string>
-                 </property>
-                 <property name="minimum">
-                  <number>3</number>
-                 </property>
-                </widget>
-               </item>
               </layout>
              </item>
             </layout>
@@ -564,7 +578,7 @@
           </item>
          </layout>
         </item>
-        <item>
+        <item row="2" column="0">
          <widget class="QGroupBox" name="groupBoxTools3D">
           <property name="layoutDirection">
            <enum>Qt::LeftToRight</enum>
@@ -572,53 +586,11 @@
           <property name="title">
            <string>Tools</string>
           </property>
-          <layout class="QGridLayout" name="gridLayout_6">
-           <item row="1" column="1">
-            <widget class="QPushButton" name="pushButtonLoad">
-             <property name="text">
-              <string>Load object</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QSlider" name="horizontalSliderAzimuth">
-             <property name="maximum">
-              <number>360</number>
-             </property>
-             <property name="sliderPosition">
-              <number>0</number>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="tickPosition">
-              <enum>QSlider::NoTicks</enum>
-             </property>
-             <property name="tickInterval">
-              <number>0</number>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QComboBox" name="comboBoxSaveRepresentation">
-             <item>
-              <property name="text">
-               <string>Surface</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Wireframe</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Points</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="6" column="1">
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
             <widget class="QSlider" name="verticalSliderZenith">
              <property name="layoutDirection">
               <enum>Qt::LeftToRight</enum>
@@ -640,28 +612,43 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QPushButton" name="pushButtonSave">
+           <item>
+            <widget class="QSlider" name="horizontalSliderAzimuth">
+             <property name="maximum">
+              <number>360</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>Settings</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_10">
+           <item row="1" column="0">
+            <widget class="QRadioButton" name="radioButtonParallel">
              <property name="text">
-              <string>Save object</string>
+              <string>Parallel</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QRadioButton" name="radioButtonPerspective">
+             <property name="text">
+              <string>Perspective</string>
              </property>
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QComboBox" name="comboBoxProjectType">
-             <item>
-              <property name="text">
-               <string>Parallel</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>Perspective</string>
-              </property>
-             </item>
-            </widget>
-           </item>
-           <item row="2" column="2">
             <widget class="QSpinBox" name="spinBoxDistance">
              <property name="prefix">
               <string>Distance: </string>
@@ -670,28 +657,28 @@
               <number>1</number>
              </property>
              <property name="maximum">
-              <number>500</number>
+              <number>5000</number>
+             </property>
+             <property name="singleStep">
+              <number>1</number>
+             </property>
+             <property name="stepType">
+              <enum>QAbstractSpinBox::AdaptiveDecimalStepType</enum>
              </property>
              <property name="value">
-              <number>50</number>
+              <number>500</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QCheckBox" name="checkBoxWireframe">
+             <property name="text">
+              <string>Wireframe</string>
              </property>
             </widget>
            </item>
           </layout>
          </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </widget>
@@ -711,7 +698,7 @@
          <x>0</x>
          <y>0</y>
          <width>714</width>
-         <height>616</height>
+         <height>628</height>
         </rect>
        </property>
       </widget>
@@ -745,14 +732,6 @@
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuImage"/>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
