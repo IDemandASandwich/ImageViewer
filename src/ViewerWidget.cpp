@@ -1258,6 +1258,9 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 	QVector<QVector<QColor>> F(width(), QVector<QColor>(height(), Qt::white));
 	QVector<QVector<double>> Z(width(), QVector<double>(height(), -DBL_MAX));
 
+	int cX = width() / 2.;
+	int cY = height() / 2.;
+
 	clear();
 	for (Face& f : obj.faces) {
 		// Transform
@@ -1265,20 +1268,22 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 		QVector3D p2o(f.edge->pair->vert_origin->x, f.edge->pair->vert_origin->y, f.edge->pair->vert_origin->z);
 		QVector3D p3o(f.edge->edge_prev->vert_origin->x, f.edge->edge_prev->vert_origin->y, f.edge->edge_prev->vert_origin->z);
 
-		QVector3D p1(QVector3D::dotProduct(p1o, v) + width() / 2., QVector3D::dotProduct(p1o, u) + height() / 2., QVector3D::dotProduct(p1o, n));
-		QVector3D p2(QVector3D::dotProduct(p2o, v) + width() / 2., QVector3D::dotProduct(p2o, u) + height() / 2., QVector3D::dotProduct(p2o, n));
-		QVector3D p3(QVector3D::dotProduct(p3o, v) + width() / 2., QVector3D::dotProduct(p3o, u) + height() / 2., QVector3D::dotProduct(p3o, n));
+		QVector3D p1(QVector3D::dotProduct(p1o, v), QVector3D::dotProduct(p1o, u), QVector3D::dotProduct(p1o, n));
+		QVector3D p2(QVector3D::dotProduct(p2o, v), QVector3D::dotProduct(p2o, u), QVector3D::dotProduct(p2o, n));
+		QVector3D p3(QVector3D::dotProduct(p3o, v), QVector3D::dotProduct(p3o, u), QVector3D::dotProduct(p3o, n));
 
 		// Projected coords
 		QVector<QPoint> T;
 
 		if (projectType == parallel) {
-			T = { QPoint(p1.x(), p1.y()), QPoint(p2.x(), p2.y()), QPoint(p3.x(), p3.y()) };
+			T = { QPoint(p1.x()  + cX, p1.y() + cY), 
+				QPoint(p2.x() + cX, p2.y() + cY), 
+				QPoint(p3.x() + cX, p3.y() + cY) };
 		}
 		else {
-			T = { QPoint(d * p1.x() / (d - p1.z()), d * p1.y() / (d - p1.z())),
-				QPoint(d* p2.x() / (d - p2.z()), d* p2.y() / (d - p2.z())),
-				QPoint(d* p3.x() / (d - p3.z()), d* p3.y() / (d - p3.z())) };
+			T = { QPoint(d * p1.x() / (d - p1.z()) + cX, d * p1.y() / (d - p1.z()) + cY),
+				QPoint(d* p2.x() / (d - p2.z()) + cX, d* p2.y() / (d - p2.z()) + cY),
+				QPoint(d* p3.x() / (d - p3.z()) + cX, d* p3.y() / (d - p3.z()) + cY) };
 		}
 
 		if (wireframe) {
@@ -1397,9 +1402,12 @@ void ViewerWidget::zFill(double x1, double x2, double m1, double m2, double ymin
 			for (double x = ceil(x1); x < ceil(x2 + 1); x++) {
 				double z = interpolateZ(x, y, T, p);
 
-				if (Z[x][y] < z) {
-					Z[x][y] = z;
-					setPixel(x, y, faceColor);
+				if (isInside(x, y)) {
+					if (Z[x][y] < z) {
+						Z[x][y] = z;
+
+						setPixel(x, y, faceColor);
+					}
 				}
 			}
 		}
@@ -1407,6 +1415,5 @@ void ViewerWidget::zFill(double x1, double x2, double m1, double m2, double ymin
 		x2 += 1. / m2;
 	}
 }
-
 
 #pragma endregion
