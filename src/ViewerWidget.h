@@ -29,7 +29,8 @@ private:
 #pragma region 3D
 
 	object3D obj;
-	QVector<QVector<double>> depth;
+	QVector3D v, u, n;
+	QVector<QVector<double>> Z;
 
 #pragma endregion
 

@@ -1100,6 +1100,7 @@ bool ViewerWidget::loadObject(QString filename) {
 	QVector<H_edge>& edges = obj.edges;
 	QVector<Face>& faces = obj.faces;
 	QVector<QColor>& colors = obj.colors;
+	Z = QVector<QVector<double>>(width(), QVector<double>(height(), -DBL_MAX));
 
 	if (!vertices.isEmpty()) { vertices.clear(); }
 	if (!edges.isEmpty()) { edges.clear(); }
@@ -1250,13 +1251,24 @@ bool ViewerWidget::saveObject(QString filename, bool wireframe) {
 
 void ViewerWidget::projectObject(double zenith, double azimuth, int projectType, int d, bool wireframe) {
 	enum projecttype{ parallel, perspective };
+	// Check if zenith or azimuth has changed
+	static double lastZenith = -1, lastAzimuth = -1;
+	if (zenith != lastZenith || azimuth != lastAzimuth) {
+		n = QVector3D(sin(zenith) * sin(azimuth), sin(zenith) * cos(azimuth), cos(zenith));
+		u = QVector3D(sin(zenith + M_PI_2) * sin(azimuth), sin(zenith + M_PI_2) * cos(azimuth), cos(zenith + M_PI_2));
+		v = QVector3D::crossProduct(n, u);
+		lastZenith = zenith;
+		lastAzimuth = azimuth;
+	}
 
-	QVector3D n(sin(zenith) * sin(azimuth), sin(zenith) * cos(azimuth), cos(zenith)); 
-	QVector3D u(sin(zenith + M_PI_2) * sin(azimuth), sin(zenith + M_PI_2) * cos(azimuth), cos(zenith + M_PI_2));
-	QVector3D v = -1 * QVector3D::crossProduct(n, u);
-
-	QVector<QVector<QColor>> F(width(), QVector<QColor>(height(), Qt::white));
-	QVector<QVector<double>> Z(width(), QVector<double>(height(), -DBL_MAX));
+	QVector<QVector<QColor>> F;//(width(), QVector<QColor>(height(), Qt::white));
+	for (int i = 0; i < Z.size(); i++) {
+		for (int j = 0; j < Z[i].size(); j++) {
+			if (Z[i][j] != -DBL_MAX) {
+				Z[i][j] = -DBL_MAX;
+			}
+		}
+	}
 
 	int cX = width() / 2.;
 	int cY = height() / 2.;
@@ -1386,26 +1398,29 @@ void ViewerWidget::zBuffer(QVector<QVector<QColor>>& F, QVector<QVector<double>>
 		zFill(x1, x2, m1, m2, ymin, ymax, Z, T, p, faceColor);
 	}
 }
-double ViewerWidget::interpolateZ(double x, double y, QVector<QPoint> T, QVector<QVector3D> p) {
-	double A = static_cast<double>(abs((T[1].x() - T[0].x()) * (T[2].y() - T[0].y()) - (T[1].y() - T[0].y()) * (T[2].x() - T[0].x())));
-	double A0 = static_cast<double>(abs((T[1].x() - x) * (T[2].y() - y) - (T[1].y() - y) * (T[2].x() - x)));
-	double A1 = static_cast<double>(abs((T[0].x() - x) * (T[2].y() - y) - (T[0].y() - y) * (T[2].x() - x)));
-	double lambda0 = A0 / A;
-	double lambda1 = A1 / A;
-	double lambda2 = 1 - lambda0 - lambda1;
-
-	return (lambda0 * p[0].z() + lambda1 * p[1].z() + lambda2 * p[2].z());
-}
 void ViewerWidget::zFill(double x1, double x2, double m1, double m2, double ymin, double ymax, QVector<QVector<double>>& Z, QVector<QPoint>& T, QVector<QVector3D>& p, QColor& faceColor) {
+	int p0x = T[0].x(); int p0y = T[0].y();
+	int p1x = T[1].x(); int p1y = T[1].y();
+	int p2x = T[2].x(); int p2y = T[2].y();
+
+	auto interpolateZ = [&](double x, double y) {
+		double A = static_cast<double>(abs((p1x - p0x) * (p2y - p0y) - (p1y - p0y) * (p2x - p0x)));
+		double lambda0 = static_cast<double>(abs((p1x - x) * (p2y - y) - (p1y - y) * (p2x - x))) / A;	// A0/A
+		double lambda1 = static_cast<double>(abs((p0x - x) * (p2y - y) - (p0y - y) * (p2x - x))) / A;	// A1/A
+		double lambda2 = 1 - lambda0 - lambda1;
+		return (lambda0 * p[0].z() + lambda1 * p[1].z() + lambda2 * p[2].z());
+		};
+	
 	for (int y = ymin; y < ymax; y++) {
 		if (x1 != x2) {
-			for (double x = ceil(x1); x < ceil(x2 + 1); x++) {
-				double z = interpolateZ(x, y, T, p);
+			int start = ceil(x1);
+			int end = ceil(x2 + 1);
+			for (int x = start; x < end; x++) {
+				double z = interpolateZ(x, y);
 
 				if (isInside(x, y)) {
 					if (Z[x][y] < z) {
 						Z[x][y] = z;
-
 						setPixel(x, y, faceColor);
 					}
 				}
