@@ -26,8 +26,8 @@ ImageViewer::ImageViewer(QWidget* parent)
 	ui->pushButtonSetColorB->setStyleSheet(QString("background-color: #%1;").arg(triangleColor[1].rgba(), 0, 16));
 	ui->pushButtonSetColorC->setStyleSheet(QString("background-color: #%1;").arg(triangleColor[2].rgba(), 0, 16));
 
-
 	initializeButtonGroup();
+	initializeButtonGroup3D();
 }
 
 // Event filters
@@ -505,6 +505,40 @@ void ImageViewer::drawObject3D() {
 
 	vW->projectObject(primary, lightingMethod, cameraDistance, zenith, azimuth, type, distance, wireframe);
 }
+void ImageViewer::initializeButtonGroup3D(){
+	connect(ui->checkBoxWireframe, &QCheckBox::stateChanged, this, &ImageViewer::drawObject3D);
+	
+	connect(ui->verticalSliderZenith, &QSlider::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->horizontalSliderAzimuth, &QSlider::valueChanged, this, &ImageViewer::drawObject3D);
+	
+	connect(ui->spinBoxDistance, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->spinBoxCameraDistance, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	
+	connect(ui->spinBoxSourceX, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->spinBoxSourceY, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->spinBoxSourceZ, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->spinBoxSourceR, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->spinBoxSourceG, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->spinBoxSourceB, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+
+	connect(ui->spinBoxAmbientR, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->spinBoxAmbientG, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->spinBoxAmbientB, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->doubleSpinBoxAmbientCoeffR, &QDoubleSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->doubleSpinBoxAmbientCoeffG, &QDoubleSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->doubleSpinBoxAmbientCoeffB, &QDoubleSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+
+	connect(ui->doubleSpinBoxDiffusionCoeffR, &QDoubleSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->doubleSpinBoxDiffusionCoeffG, &QDoubleSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->doubleSpinBoxDiffusionCoeffB, &QDoubleSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+
+	connect(ui->doubleSpinBoxReflectionCoeffR, &QDoubleSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->doubleSpinBoxReflectionCoeffG, &QDoubleSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+	connect(ui->doubleSpinBoxReflectionCoeffB, &QDoubleSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+
+	connect(ui->radioButtonParallel, &QRadioButton::toggled, this, &ImageViewer::drawObject3D);
+	connect(ui->radioButtonConstant, &QRadioButton::toggled, this, &ImageViewer::drawObject3D);
+}
 
 void ImageViewer::on_pushButtonCube_clicked() {
 	QString folder = settings.value("folder_img_save_path", "").toString();
@@ -595,20 +629,4 @@ void ImageViewer::on_pushButtonSave_clicked() {
 		}
 		msgBox.exec();
 	}
-}
-
-void ImageViewer::on_checkBoxWireframe_stateChanged() {
-	drawObject3D();
-}
-void ImageViewer::on_radioButtonParallel_toggled() {
-	drawObject3D();
-}
-void ImageViewer::on_verticalSliderZenith_valueChanged() {
-	drawObject3D();
-}
-void ImageViewer::on_horizontalSliderAzimuth_valueChanged() {
-	drawObject3D();
-}
-void ImageViewer::on_spinBoxDistance_valueChanged() {
-	drawObject3D();
 }

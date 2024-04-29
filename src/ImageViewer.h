@@ -69,15 +69,10 @@ private slots:
 
 	//3D
 	void drawObject3D();
+	void initializeButtonGroup3D();
 
 	void on_pushButtonCube_clicked();
 	void on_pushButtonUVSphere_clicked();
 	void on_pushButtonLoad_clicked();
 	void on_pushButtonSave_clicked();
-
-	void on_checkBoxWireframe_stateChanged();
-	void on_radioButtonParallel_toggled();
-	void on_verticalSliderZenith_valueChanged();
-	void on_horizontalSliderAzimuth_valueChanged();
-	void on_spinBoxDistance_valueChanged();
 };
