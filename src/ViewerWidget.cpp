@@ -1099,7 +1099,6 @@ bool ViewerWidget::loadObject(QString filename) {
 	QVector<Vertex>& vertices = obj.vertices;
 	QVector<H_edge>& edges = obj.edges;
 	QVector<Face>& faces = obj.faces;
-	QVector<QColor>& colors = obj.colors;
 	Z = QVector<QVector<double>>(width(), QVector<double>(height(), -DBL_MAX));
 
 	if (!vertices.isEmpty()) { vertices.clear(); }
@@ -1195,15 +1194,6 @@ bool ViewerWidget::loadObject(QString filename) {
 	}
 	file.close();
 
-	// Random colors
-	for (qsizetype i = 0; i < faces.size() / 2; i++) {
-		QColor randomColor(QRandomGenerator::global()->bounded(256),
-			QRandomGenerator::global()->bounded(256),
-			QRandomGenerator::global()->bounded(256));
-		colors.append(randomColor);
-		colors.append(randomColor);
-	}
-
 	return true;
 }
 bool ViewerWidget::saveObject(QString filename, bool wireframe) {
@@ -1221,12 +1211,11 @@ bool ViewerWidget::saveObject(QString filename, bool wireframe) {
 			out << vertex.x << " " << vertex.y << " " << vertex.z << "\n";
 		}
 
-		// TODO: currently saving every edge twice, too bad!
 		if (wireframe) {
 			out << "LINES " << edges.size() / 2 << " " << 3 * edges.size() / 2 << "\n";
 			for (H_edge& edge : edges) {
 				int v1 = vertices.indexOf(*edge.vert_origin);
-				int v2 = vertices.indexOf(*edge.pair->vert_origin);
+				int v2 = vertices.indexOf(*edge.edge_next->vert_origin);
 
 				if(v1 < v2)
 					out << "2 " << v1 << " " << v2 << "\n";
@@ -1249,7 +1238,7 @@ bool ViewerWidget::saveObject(QString filename, bool wireframe) {
 	}
 }
 
-void ViewerWidget::projectObject(double zenith, double azimuth, int projectType, int d, bool wireframe) {
+void ViewerWidget::projectObject(lighting primary, int lightingMethod, int cameraDistance, double zenith, double azimuth, int projectType, int d, bool wireframe) {
 	enum projecttype{ parallel, perspective };
 	// Check if zenith or azimuth has changed
 	static double lastZenith = -1, lastAzimuth = -1;
@@ -1262,13 +1251,7 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 	}
 
 	QVector<QVector<QColor>> F;//(width(), QVector<QColor>(height(), Qt::white));
-	for (int i = 0; i < Z.size(); i++) {
-		for (int j = 0; j < Z[i].size(); j++) {
-			if (Z[i][j] != -DBL_MAX) {
-				Z[i][j] = -DBL_MAX;
-			}
-		}
-	}
+	Z = QVector<QVector<double>>(width(), QVector<double>(height(), -DBL_MAX));
 
 	int cX = width() / 2.;
 	int cY = height() / 2.;
@@ -1277,7 +1260,7 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 	for (Face& f : obj.faces) {
 		// Transform
 		QVector3D p1o(f.edge->vert_origin->x, f.edge->vert_origin->y, f.edge->vert_origin->z);
-		QVector3D p2o(f.edge->pair->vert_origin->x, f.edge->pair->vert_origin->y, f.edge->pair->vert_origin->z);
+		QVector3D p2o(f.edge->edge_next->vert_origin->x, f.edge->edge_next->vert_origin->y, f.edge->edge_next->vert_origin->z);
 		QVector3D p3o(f.edge->edge_prev->vert_origin->x, f.edge->edge_prev->vert_origin->y, f.edge->edge_prev->vert_origin->z);
 
 		QVector3D p1(QVector3D::dotProduct(p1o, v), QVector3D::dotProduct(p1o, u), QVector3D::dotProduct(p1o, n));
@@ -1302,12 +1285,12 @@ void ViewerWidget::projectObject(double zenith, double azimuth, int projectType,
 			drawPolygonWireframe(T, Qt::black);
 		}
 		else {
-			zBuffer(F, Z, T, { p1, p2, p3 }, obj.colors[obj.faces.indexOf(f)]);
+			zBuffer(primary, lightingMethod, cameraDistance, F, T, { p1, p2, p3 });
 		}	
 	}
 	update();
 }
-void ViewerWidget::zBuffer(QVector<QVector<QColor>>& F, QVector<QVector<double>>& Z, QVector<QPoint> T, QVector<QVector3D> p, QColor faceColor) {
+void ViewerWidget::zBuffer(lighting primary, int lightingMethod, int cameraDistance, QVector<QVector<QColor>>& F, QVector<QPoint> T, QVector<QVector3D> p) {
 	std::sort(T.begin(), T.end(), [](const QPoint& a, const QPoint& b) {
 		if (a.y() != b.y())
 			return a.y() < b.y();
@@ -1336,7 +1319,7 @@ void ViewerWidget::zBuffer(QVector<QVector<QColor>>& F, QVector<QVector<double>>
 		double x1 = static_cast<double>(p0.x());
 		double x2 = static_cast<double>(p1.x());
 
-		zFill(x1, x2, m1, m2, ymin, ymax, Z, T, p, faceColor);
+		zFill(primary, lightingMethod, cameraDistance, x1, x2, m1, m2, ymin, ymax, T, p);
 	}
 	else if (p1.y() == p2.y()) {
 		//up
@@ -1347,7 +1330,7 @@ void ViewerWidget::zBuffer(QVector<QVector<QColor>>& F, QVector<QVector<double>>
 		double x1 = static_cast<double>(p0.x());
 		double x2 = x1;
 
-		zFill(x1, x2, m1, m2, ymin, ymax, Z, T, p, faceColor);
+		zFill(primary, lightingMethod, cameraDistance, x1, x2, m1, m2, ymin, ymax, T, p);
 	}
 	else {
 		double m = slope(p2, p0);
@@ -1372,7 +1355,7 @@ void ViewerWidget::zBuffer(QVector<QVector<QColor>>& F, QVector<QVector<double>>
 		double x1 = static_cast<double>(p0.x());
 		double x2 = static_cast<double>(p1.x());
 
-		zFill(x1, x2, m1, m2, ymin, ymax, Z, T, p, faceColor);
+		zFill(primary, lightingMethod, cameraDistance, x1, x2, m1, m2, ymin, ymax, T, p);
 
 		//up
 		p0 = T[0];
@@ -1395,33 +1378,63 @@ void ViewerWidget::zBuffer(QVector<QVector<QColor>>& F, QVector<QVector<double>>
 		x1 = static_cast<double>(p0.x());
 		x2 = x1;
 
-		zFill(x1, x2, m1, m2, ymin, ymax, Z, T, p, faceColor);
+		zFill(primary, lightingMethod, cameraDistance, x1, x2, m1, m2, ymin, ymax, T, p);
 	}
 }
-void ViewerWidget::zFill(double x1, double x2, double m1, double m2, double ymin, double ymax, QVector<QVector<double>>& Z, QVector<QPoint>& T, QVector<QVector3D>& p, QColor& faceColor) {
+void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistance, double x1, double x2, double m1, double m2, double ymin, double ymax, QVector<QPoint>& T, QVector<QVector3D>& p) {
 	int p0x = T[0].x(); int p0y = T[0].y();
 	int p1x = T[1].x(); int p1y = T[1].y();
 	int p2x = T[2].x(); int p2y = T[2].y();
+	QVector3D camera(0, 0, cameraDistance);
+	QVector3D source(primary.source.x, primary.source.y, primary.source.z);
+	QVector3D p0(p0x, p0y, p.at(0).z());
+	QVector3D p1(p1x, p1y, p.at(1).z());
+	QVector3D p2(p2x, p2y, p.at(2).z());
+	QVector3D center((p0 + p1 + p2) / 3.0);
 
-	auto interpolateZ = [&](double x, double y) {
+	auto interpolateZ = [&](const double& x, const double& y) {
 		double A = static_cast<double>(abs((p1x - p0x) * (p2y - p0y) - (p1y - p0y) * (p2x - p0x)));
 		double lambda0 = static_cast<double>(abs((p1x - x) * (p2y - y) - (p1y - y) * (p2x - x))) / A;	// A0/A
 		double lambda1 = static_cast<double>(abs((p0x - x) * (p2y - y) - (p0y - y) * (p2x - x))) / A;	// A1/A
 		double lambda2 = 1 - lambda0 - lambda1;
 		return (lambda0 * p[0].z() + lambda1 * p[1].z() + lambda2 * p[2].z());
 		};
+	auto phong = [&](const QVector3D& p) {
+		QVector3D V = (camera - p).normalized();
+		QVector3D N = p.normalized();
+		QVector3D L = (source - p).normalized();
+		QVector3D R = 2 * QVector3D::dotProduct(L, N) * N - L;
+
+		double dot = pow(QVector3D::dotProduct(V, R), 20);
+		int rs = primary.source.r * primary.reflection.coeffR * dot;
+		int gs = primary.source.g * primary.reflection.coeffG * dot;
+		int bs = primary.source.b * primary.reflection.coeffB * dot;
+
+		dot = QVector3D::dotProduct(L, N);
+		int rd = primary.source.r * primary.diffusion.coeffR * dot;
+		int gd = primary.source.g * primary.diffusion.coeffG * dot;
+		int bd = primary.source.b * primary.diffusion.coeffB * dot;
+
+		int ra = primary.ambient.r * primary.ambient.coeffR;
+		int ga = primary.ambient.g * primary.ambient.coeffG;
+		int ba = primary.ambient.b * primary.ambient.coeffB;
+
+		return QColor(rs + rd + rs, gs + gd + ga, bs + bd + ba);
+		};
+
+	QColor color = phong(center);
 	
 	for (int y = ymin; y < ymax; y++) {
 		if (x1 != x2) {
-			int start = ceil(x1);
-			int end = ceil(x2 + 1);
+			int start = floor(x1);
+			int end = floor (x2 + 1);
 			for (int x = start; x < end; x++) {
 				double z = interpolateZ(x, y);
 
 				if (isInside(x, y)) {
 					if (Z[x][y] < z) {
 						Z[x][y] = z;
-						setPixel(x, y, faceColor);
+						setPixel(x, y, color);
 					}
 				}
 			}

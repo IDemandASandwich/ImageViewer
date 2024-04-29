@@ -69,7 +69,6 @@ public:
 	QVector<Vertex> vertices;
 	QVector<H_edge> edges;
 	QVector<Face> faces;
-	QVector<QColor> colors;
 
-	object3D() :vertices(), edges(), faces(), colors() {};
+	object3D() :vertices(), edges(), faces() {};
 };

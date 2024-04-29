@@ -1,6 +1,7 @@
 #pragma once
 #include <QtWidgets>
 #include "halfEdge.h"
+#include "light.h";
 
 class ViewerWidget :public QWidget {
 	Q_OBJECT
@@ -130,10 +131,9 @@ public:
 	bool loadObject(QString filename);
 	bool saveObject(QString filename, bool wireframe);
 
-	void projectObject(double zenith = 0, double azimuth = 0, int projectType = 0, int distance = 0, bool wireframe = false);
-	void zBuffer(QVector<QVector<QColor>>& F, QVector<QVector<double>>& Z, QVector<QPoint> T, QVector<QVector3D> p, QColor faceColor);
-	double interpolateZ(double x, double y, QVector<QPoint> T, QVector<QVector3D> p);
-	void zFill(double x1, double x2, double m1, double m2, double ymin, double ymax, QVector<QVector<double>>& Z, QVector<QPoint>& T, QVector<QVector3D>& p, QColor& faceColor);
+	void projectObject(lighting primary, int lightingMethod, int cameraDistance, double zenith = 0, double azimuth = 0, int projectType = 0, int distance = 0, bool wireframe = false);
+	void zBuffer(lighting primary, int lightingMethod, int cameraDistance, QVector<QVector<QColor>>& F, QVector<QPoint> T, QVector<QVector3D> p);
+	void zFill(lighting primary, int lightingMethod, int cameraDistance, double x1, double x2, double m1, double m2, double ymin, double ymax, QVector<QPoint>& T, QVector<QVector3D>& p);
 
 #pragma endregion
 

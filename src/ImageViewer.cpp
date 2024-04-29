@@ -463,13 +463,47 @@ void ImageViewer::drawObject3D() {
 	bool wireframe = ui->checkBoxWireframe->isChecked();
 	double zenith = static_cast<double>(ui->verticalSliderZenith->value()) * M_PI / 180.;
 	double azimuth = static_cast<double>(ui->horizontalSliderAzimuth->value()) * M_PI / 180.;
+
+	int x = ui->spinBoxSourceX->value();
+	int y = ui->spinBoxSourceY->value();
+	int z = ui->spinBoxSourceZ->value();
+	unsigned char r = static_cast<unsigned char>(ui->spinBoxSourceR->value());
+	unsigned char g = static_cast<unsigned char>(ui->spinBoxSourceG->value());
+	unsigned char b = static_cast<unsigned char>(ui->spinBoxSourceB->value());
+	light source(r, g, b, x, y, z);
+
+	r = static_cast<unsigned char>(ui->spinBoxAmbientR->value());
+	g = static_cast<unsigned char>(ui->spinBoxAmbientG->value());
+	b = static_cast<unsigned char>(ui->spinBoxAmbientB->value());
+	double cr = ui->doubleSpinBoxAmbientCoeffR->value();
+	double cg = ui->doubleSpinBoxAmbientCoeffG->value();
+	double cb = ui->doubleSpinBoxAmbientCoeffB->value();
+	light ambient(r, g, b, cr, cg, cb);
+
+	cr = ui->doubleSpinBoxDiffusionCoeffR->value();
+	cg = ui->doubleSpinBoxDiffusionCoeffG->value();
+	cb = ui->doubleSpinBoxDiffusionCoeffB->value();
+	light diffusion(cr, cg, cb);
+
+	cr = ui->doubleSpinBoxReflectionCoeffR->value();
+	cg = ui->doubleSpinBoxReflectionCoeffG->value();
+	cb = ui->doubleSpinBoxReflectionCoeffB->value();
+	light reflection(cr, cg, cb);
+
+	lighting primary(source, ambient, diffusion, reflection);
+
+	int lightingMethod = 0;
+	ui->radioButtonConstant->isChecked() ? lightingMethod = 0 : lightingMethod = 1;
+
+	int cameraDistance = ui->spinBoxCameraDistance->value();
+
 	int type = 0;
 	if (ui->radioButtonParallel->isChecked())
 		type = parallel;
 	else
 		type = perspective;
 
-	vW->projectObject(zenith, azimuth, type, distance, wireframe);
+	vW->projectObject(primary, lightingMethod, cameraDistance, zenith, azimuth, type, distance, wireframe);
 }
 
 void ImageViewer::on_pushButtonCube_clicked() {
