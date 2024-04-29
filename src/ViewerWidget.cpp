@@ -1419,10 +1419,20 @@ void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistanc
 		int ga = primary.ambient.g * primary.ambient.coeffG;
 		int ba = primary.ambient.b * primary.ambient.coeffB;
 
-		return QColor(rs + rd + rs, gs + gd + ga, bs + bd + ba);
+		int r = rs + rd + ra;
+		int g = gs + gd + ga;
+		int b = bs + bd + ba;
+
+		r = std::min(r, 255);
+		g = std::min(g, 255);
+		b = std::min(b, 255);
+
+		return QColor(r, g, b);
 		};
 
-	QColor color = phong(center);
+	QColor color = Qt::black;
+	if(lightingMethod == 0)
+		color = phong(center);
 	
 	for (int y = ymin; y < ymax; y++) {
 		if (x1 != x2) {
