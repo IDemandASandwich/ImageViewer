@@ -1387,10 +1387,11 @@ void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistanc
 	int p2x = T[2].x(); int p2y = T[2].y();
 	QVector3D camera(0, 0, cameraDistance);
 	QVector3D source(primary.source.x, primary.source.y, primary.source.z);
+
 	QVector3D p0(p0x, p0y, p.at(0).z());
 	QVector3D p1(p1x, p1y, p.at(1).z());
 	QVector3D p2(p2x, p2y, p.at(2).z());
-	QVector3D center((p0 + p1 + p2) / 3.0);
+	QColor c0, c1, c2, color;
 
 	auto interpolateZ = [&](const double& x, const double& y) {
 		double A = static_cast<double>(abs((p1x - p0x) * (p2y - p0y) - (p1y - p0y) * (p2x - p0x)));
@@ -1398,6 +1399,18 @@ void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistanc
 		double lambda1 = static_cast<double>(abs((p0x - x) * (p2y - y) - (p0y - y) * (p2x - x))) / A;	// A1/A
 		double lambda2 = 1 - lambda0 - lambda1;
 		return (lambda0 * p[0].z() + lambda1 * p[1].z() + lambda2 * p[2].z());
+		};
+	auto interpolateColor = [&](const double& x, const double& y) {
+		double A = static_cast<double>(abs((p1x - p0x) * (p2y - p0y) - (p1y - p0y) * (p2x - p0x)));
+		double lambda0 = static_cast<double>(abs((p1x - x) * (p2y - y) - (p1y - y) * (p2x - x))) / A;	// A0/A
+		double lambda1 = static_cast<double>(abs((p0x - x) * (p2y - y) - (p0y - y) * (p2x - x))) / A;	// A1/A
+		double lambda2 = 1 - lambda0 - lambda1;
+
+		int r = lambda0 * c0.red() + lambda1 * c1.red() + lambda2 * c2.red();
+		int g = lambda0 * c0.green() + lambda1 * c1.green() + lambda2 * c2.green();
+		int b = lambda0 * c0.blue() + lambda1 * c1.blue() + lambda2 * c2.blue();
+
+		return QColor(r,g,b);
 		};
 	auto phong = [&](const QVector3D& p) {
 		QVector3D V = (camera - p).normalized();
@@ -1430,9 +1443,15 @@ void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistanc
 		return QColor(r, g, b);
 		};
 
-	QColor color = Qt::black;
-	if(lightingMethod == 0)
+	if (lightingMethod == 0) {
+		QVector3D center((p0 + p1 + p2) / 3.0);
 		color = phong(center);
+	}
+	else{
+		c0 = phong(p0);
+		c1 = phong(p1);
+		c2 = phong(p2);
+	}
 	
 	for (int y = ymin; y < ymax; y++) {
 		if (x1 != x2) {
@@ -1440,6 +1459,10 @@ void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistanc
 			int end = floor (x2 + 1);
 			for (int x = start; x < end; x++) {
 				double z = interpolateZ(x, y);
+
+				if (lightingMethod == 1) {
+					color = interpolateColor(x, y);
+				}
 
 				if (isInside(x, y)) {
 					if (Z[x][y] < z) {
