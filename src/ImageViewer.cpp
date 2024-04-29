@@ -506,6 +506,8 @@ void ImageViewer::drawObject3D() {
 	vW->projectObject(primary, lightingMethod, cameraDistance, zenith, azimuth, type, distance, wireframe);
 }
 void ImageViewer::initializeButtonGroup3D(){
+	// can be optimised, this redraws the whole thing even if the changed setting doesn't affect it
+	
 	connect(ui->checkBoxWireframe, &QCheckBox::stateChanged, this, &ImageViewer::drawObject3D);
 	
 	connect(ui->verticalSliderZenith, &QSlider::valueChanged, this, &ImageViewer::drawObject3D);
