@@ -496,6 +496,7 @@ void ImageViewer::drawObject3D() {
 	ui->radioButtonConstant->isChecked() ? lightingMethod = 0 : lightingMethod = 1;
 
 	int cameraDistance = ui->spinBoxCameraDistance->value();
+	int lightSharpness = ui->spinBoxLightSharpness->value();
 
 	int type = 0;
 	if (ui->radioButtonParallel->isChecked())
@@ -503,7 +504,7 @@ void ImageViewer::drawObject3D() {
 	else
 		type = perspective;
 
-	vW->projectObject(primary, lightingMethod, cameraDistance, zenith, azimuth, type, distance, wireframe);
+	vW->projectObject(primary, lightingMethod, cameraDistance, lightSharpness, zenith, azimuth, type, distance, wireframe);
 }
 void ImageViewer::initializeButtonGroup3D(){
 	// can be optimised, this redraws the whole thing even if the changed setting doesn't affect it
@@ -515,7 +516,8 @@ void ImageViewer::initializeButtonGroup3D(){
 	
 	connect(ui->spinBoxDistance, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
 	connect(ui->spinBoxCameraDistance, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
-	
+	connect(ui->spinBoxLightSharpness, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
+
 	connect(ui->spinBoxSourceX, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
 	connect(ui->spinBoxSourceY, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);
 	connect(ui->spinBoxSourceZ, &QSpinBox::valueChanged, this, &ImageViewer::drawObject3D);

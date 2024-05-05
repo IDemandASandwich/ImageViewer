@@ -1238,7 +1238,7 @@ bool ViewerWidget::saveObject(QString filename, bool wireframe) {
 	}
 }
 
-void ViewerWidget::projectObject(lighting primary, int lightingMethod, int cameraDistance, double zenith, double azimuth, int projectType, int d, bool wireframe) {
+void ViewerWidget::projectObject(lighting primary, int lightingMethod, int cameraDistance, int lightSharpness, double zenith, double azimuth, int projectType, int d, bool wireframe) {
 	enum projecttype{ parallel, perspective };
 	// Check if zenith or azimuth has changed
 	static double lastZenith = -1, lastAzimuth = -1;
@@ -1285,12 +1285,12 @@ void ViewerWidget::projectObject(lighting primary, int lightingMethod, int camer
 			drawPolygonWireframe(T, Qt::black);
 		}
 		else {
-			zBuffer(primary, lightingMethod, cameraDistance, F, T, { p1, p2, p3 });
+			zBuffer(primary, lightingMethod, cameraDistance, lightSharpness, F, T, { p1, p2, p3 });
 		}	
 	}
 	update();
 }
-void ViewerWidget::zBuffer(lighting primary, int lightingMethod, int cameraDistance, QVector<QVector<QColor>>& F, QVector<QPoint> T, QVector<QVector3D> p) {
+void ViewerWidget::zBuffer(lighting primary, int lightingMethod, int cameraDistance, int lightSharpness, QVector<QVector<QColor>>& F, QVector<QPoint> T, QVector<QVector3D> p) {
 	std::sort(T.begin(), T.end(), [](const QPoint& a, const QPoint& b) {
 		if (a.y() != b.y())
 			return a.y() < b.y();
@@ -1300,8 +1300,11 @@ void ViewerWidget::zBuffer(lighting primary, int lightingMethod, int cameraDista
 	std::sort(p.begin(), p.end(), [](const QVector3D& a, const QVector3D& b) {
 		if (a.y() != b.y())
 			return a.y() < b.y();
-		else
+		else if (a.x() != b.x())
 			return a.x() < b.x();
+		else
+			return a.z() < b.z();
+
 		});
 
 	QPoint p0 = T.at(0);
@@ -1319,7 +1322,7 @@ void ViewerWidget::zBuffer(lighting primary, int lightingMethod, int cameraDista
 		double x1 = static_cast<double>(p0.x());
 		double x2 = static_cast<double>(p1.x());
 
-		zFill(primary, lightingMethod, cameraDistance, x1, x2, m1, m2, ymin, ymax, T, p);
+		zFill(primary, lightingMethod, cameraDistance, lightSharpness, x1, x2, m1, m2, ymin, ymax, T, p);
 	}
 	else if (p1.y() == p2.y()) {
 		//up
@@ -1330,7 +1333,7 @@ void ViewerWidget::zBuffer(lighting primary, int lightingMethod, int cameraDista
 		double x1 = static_cast<double>(p0.x());
 		double x2 = x1;
 
-		zFill(primary, lightingMethod, cameraDistance, x1, x2, m1, m2, ymin, ymax, T, p);
+		zFill(primary, lightingMethod, cameraDistance, lightSharpness, x1, x2, m1, m2, ymin, ymax, T, p);
 	}
 	else {
 		double m = slope(p2, p0);
@@ -1355,7 +1358,7 @@ void ViewerWidget::zBuffer(lighting primary, int lightingMethod, int cameraDista
 		double x1 = static_cast<double>(p0.x());
 		double x2 = static_cast<double>(p1.x());
 
-		zFill(primary, lightingMethod, cameraDistance, x1, x2, m1, m2, ymin, ymax, T, p);
+		zFill(primary, lightingMethod, cameraDistance, lightSharpness, x1, x2, m1, m2, ymin, ymax, T, p);
 
 		//up
 		p0 = T[0];
@@ -1378,14 +1381,14 @@ void ViewerWidget::zBuffer(lighting primary, int lightingMethod, int cameraDista
 		x1 = static_cast<double>(p0.x());
 		x2 = x1;
 
-		zFill(primary, lightingMethod, cameraDistance, x1, x2, m1, m2, ymin, ymax, T, p);
+		zFill(primary, lightingMethod, cameraDistance, lightSharpness, x1, x2, m1, m2, ymin, ymax, T, p);
 	}
 }
-void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistance, double x1, double x2, double m1, double m2, double ymin, double ymax, QVector<QPoint>& T, QVector<QVector3D>& p) {
+void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistance, int lightSharpness, double x1, double x2, double m1, double m2, double ymin, double ymax, QVector<QPoint>& T, QVector<QVector3D>& p) {
 	int p0x = T[0].x(); int p0y = T[0].y();
 	int p1x = T[1].x(); int p1y = T[1].y();
 	int p2x = T[2].x(); int p2y = T[2].y();
-	QVector3D camera(0, 0, cameraDistance);
+	QVector3D camera(250, 250, cameraDistance);
 	QVector3D source(primary.source.x, primary.source.y, primary.source.z);
 
 	QVector3D p0(p0x, p0y, p.at(0).z());
@@ -1409,7 +1412,6 @@ void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistanc
 		int r = lambda0 * c0.red() + lambda1 * c1.red() + lambda2 * c2.red();
 		int g = lambda0 * c0.green() + lambda1 * c1.green() + lambda2 * c2.green();
 		int b = lambda0 * c0.blue() + lambda1 * c1.blue() + lambda2 * c2.blue();
-
 		return QColor(r,g,b);
 		};
 	auto phong = [&](const QVector3D& p) {
@@ -1418,7 +1420,7 @@ void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistanc
 		QVector3D L = (source - p).normalized();
 		QVector3D R = 2 * QVector3D::dotProduct(L, N) * N - L;
 
-		double dot = pow(QVector3D::dotProduct(V, R), 20);
+		double dot = fabs(pow(QVector3D::dotProduct(V, R), lightSharpness));
 		int rs = primary.source.r * primary.reflection.coeffR * dot;
 		int gs = primary.source.g * primary.reflection.coeffG * dot;
 		int bs = primary.source.b * primary.reflection.coeffB * dot;
@@ -1439,6 +1441,10 @@ void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistanc
 		r = std::min(r, 255);
 		g = std::min(g, 255);
 		b = std::min(b, 255);
+
+		r = std::max(r, 0);
+		g = std::max(g, 0);
+		b = std::max(b, 0);
 
 		return QColor(r, g, b);
 		};
