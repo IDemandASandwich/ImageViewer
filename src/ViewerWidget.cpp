@@ -1388,7 +1388,7 @@ void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistanc
 	int p0x = T[0].x(); int p0y = T[0].y();
 	int p1x = T[1].x(); int p1y = T[1].y();
 	int p2x = T[2].x(); int p2y = T[2].y();
-	QVector3D camera(250, 250, cameraDistance);
+	QVector3D camera(0, 0, cameraDistance);
 	QVector3D source(primary.source.x, primary.source.y, primary.source.z);
 
 	QVector3D p0(p0x, p0y, p.at(0).z());
@@ -1418,7 +1418,7 @@ void ViewerWidget::zFill(lighting primary, int lightingMethod, int cameraDistanc
 		QVector3D V = (camera - p).normalized();
 		QVector3D N = p.normalized();
 		QVector3D L = (source - p).normalized();
-		QVector3D R = 2 * QVector3D::dotProduct(L, N) * N - L;
+		QVector3D R = (2 * QVector3D::dotProduct(L, N) * N - L).normalized();
 
 		double dot = fabs(pow(QVector3D::dotProduct(V, R), lightSharpness));
 		int rs = primary.source.r * primary.reflection.coeffR * dot;
