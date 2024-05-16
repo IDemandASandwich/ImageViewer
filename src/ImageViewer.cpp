@@ -403,6 +403,14 @@ void ImageViewer::initializeButtonGroup()
 		vW->clear();
 		vW->drawCurve(vW->getObject(), globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
 	});
+	connect(ui->toolBox, &QToolBox::currentChanged, [this](int index) {
+		if (index == 0) {
+			ui->groupBox_4->setVisible(false);
+		}
+		else {
+			ui->groupBox_4->setVisible(true);
+		}
+	});
 }
 
 void ImageViewer::on_pushButtonRotate_clicked() {
