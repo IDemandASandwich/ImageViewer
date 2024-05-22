@@ -95,8 +95,10 @@ public:
 	void drawCircle(QPoint center, QPoint end, QColor color);
 	void drawCircle(QPoint center, int r, QColor color);
 	void drawPolygon(QVector<QPoint> points, QColor color, QColor triangleColor[3] = {0}, int algtype = 0, int triangleFillType = 0);
-	void drawPolygonWireframe(QVector<QPoint> points, QColor color);
+	void drawRectangle(QPoint start, QPoint end, QColor color, int fillTrue = 0);
 	void drawType(QColor color, QColor triangleColor[3],int type, int algtype = 0, int triangleFillType = 0);
+
+	void drawPolygonWireframe(QVector<QPoint> points, QColor color);
 
 	void rotateObject(int degrees, int type, QColor color, QColor triangleColor[3], int algtype = 0, int triangleFillType = 0);
 	void scaleObject(double multiplier, QColor color, QColor triangleColor[3], int type, int algtype = 0, int triangleFillType = 0);

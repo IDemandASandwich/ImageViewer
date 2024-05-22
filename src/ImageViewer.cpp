@@ -72,7 +72,7 @@ bool ImageViewer::ViewerWidgetEventFilter(QObject* obj, QEvent* event)
 void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 {
 	QMouseEvent* e = static_cast<QMouseEvent*>(event);
-	if (w->getMoveActive() == false)
+	if (ui->radioButtonDraw->isChecked())
 	{
 		if (e->button() == Qt::LeftButton)
 		{
@@ -106,6 +106,18 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 			else if (ui->toolButtonDrawCurved->isChecked()) {	//duplicate code left for possible future expansion
 				w->update();
 			}
+			else if (ui->toolButtonDrawRectangle->isChecked()) {
+				if (w->getDrawLineActivated()) {
+					w->drawRectangle(w->getDrawLineBegin(), e->pos(), globalColor);
+					w->setDrawLineActivated(false);
+					w->setMoveActive(true);
+				}
+				else {
+					w->setDrawLineBegin(e->pos());
+					w->setDrawLineActivated(true);
+					w->update();
+				}
+			}
 
 			w->addObjectPoint(e->pos());
 			w->setPixel(e->pos().x(), e->pos().y(), Qt::red);
@@ -128,10 +140,6 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 			w->setOrigin(e->pos());
 		}
 	}
-
-	ui->groupBoxFill->setVisible(ui->toolButtonDrawPolygon->isChecked());
-	ui->groupBoxEdit->setVisible(ui->toolButtonDrawCurved->isChecked() == false);
-	ui->groupBoxDraw->setVisible(false);
 }
 void ImageViewer::ViewerWidgetMouseButtonRelease(ViewerWidget* w, QEvent* event)
 {
@@ -195,6 +203,10 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 
 			w->clear();
 			w->drawCurve(temp, globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
+		}
+		else if (ui->toolButtonDrawRectangle->isChecked()) {
+			w->clear();
+			w->drawRectangle(w->getObject().at(0) + move, w->getObject().at(1) + move, globalColor);
 		}
 	}
 }
@@ -352,56 +364,25 @@ void ImageViewer::on_pushButtonClear_clicked()
 	vW->clear();
 	vW->clearObjectPoints();
 	vW->setMoveActive(false);
-
-	ui->groupBoxDraw->setVisible(true);
-	ui->groupBoxEdit->setVisible(false);
-	ui->groupBoxFill->setVisible(false);
 }
 
 void ImageViewer::initializeButtonGroup()
 {
+	ui->groupBox_4->setVisible(ui->toolBox->currentIndex() == 1);
+
 	QButtonGroup* buttonGroup = new QButtonGroup(this);
 	buttonGroup->addButton(ui->toolButtonDrawLine);
 	buttonGroup->addButton(ui->toolButtonDrawPolygon);
 	buttonGroup->addButton(ui->toolButtonDrawCircle);
 	buttonGroup->addButton(ui->toolButtonDrawCurved);
+	buttonGroup->addButton(ui->toolButtonDrawRectangle);
 	buttonGroup->setExclusive(true);
 
-	ui->groupBoxEdit->setVisible(false);
-	ui->groupBoxFill->setVisible(false);
-
-	ui->comboBoxLineAlg->setVisible(false);
-	ui->comboBoxCurvedType->setVisible(false);
-	ui->comboBoxShowAddons->setVisible(false);
-
-	connect(ui->toolButtonDrawCircle, &QToolButton::clicked, [this]() {	
-		ui->comboBoxLineAlg->setVisible(false); 
-		ui->comboBoxCurvedType->setVisible(false);	
-		ui->comboBoxShowAddons->setVisible(false);
-
-	});
-	connect(ui->toolButtonDrawLine, &QToolButton::clicked, [this]() {	
-		ui->comboBoxLineAlg->setVisible(true);	
-		ui->comboBoxCurvedType->setVisible(false); 
-		ui->comboBoxShowAddons->setVisible(false);
-
-	});
-	connect(ui->toolButtonDrawPolygon, &QToolButton::clicked, [this]() {	
-		ui->comboBoxLineAlg->setVisible(true);	
-		ui->comboBoxCurvedType->setVisible(false);
-		ui->comboBoxShowAddons->setVisible(false);
-
-	});
-	connect(ui->toolButtonDrawCurved, &QToolButton::clicked, [this]() {	
-		ui->comboBoxLineAlg->setVisible(false);	
-		ui->comboBoxCurvedType->setVisible(true); 
-		ui->comboBoxShowAddons->setVisible(true);
-
-	});
-
 	connect(ui->comboBoxShowAddons, &QComboBox::currentIndexChanged, [this]() {
-		vW->clear();
-		vW->drawCurve(vW->getObject(), globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
+		if (ui->toolButtonDrawCurved->isChecked()) {
+			vW->clear();
+			vW->drawCurve(vW->getObject(), globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
+		}
 	});
 	connect(ui->toolBox, &QToolBox::currentChanged, [this](int index) {
 		if (index == 0) {
@@ -516,6 +497,7 @@ void ImageViewer::drawObject3D() {
 }
 void ImageViewer::initializeButtonGroup3D(){
 	// can be optimised, this redraws the whole thing even if the changed setting doesn't affect it
+	ui->groupBox_4->setVisible(ui->toolBox->currentIndex() == 1);
 	
 	connect(ui->checkBoxWireframe, &QCheckBox::stateChanged, this, &ImageViewer::drawObject3D);
 	

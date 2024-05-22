@@ -228,6 +228,13 @@ void ViewerWidget::drawPolygonWireframe(QVector<QPoint> points, QColor color)
 		drawLine(points[i], points[(i + 1) % points.size()], color, 0, false, false);
 	}
 }
+void ViewerWidget::drawRectangle(QPoint start, QPoint end, QColor color, int fillTrue) {
+	QPoint p2(start.x(), end.y());
+	QPoint p3(end.x(), start.y());
+	QVector<QPoint> p = { start, p2, end, p3 };
+
+	drawPolygon(p, color);
+}
 void ViewerWidget::drawType(QColor color, QColor triangleColor[3], int type, int algtype, int triangleFillType) {
 	enum types { line, circle, polygon };
 
