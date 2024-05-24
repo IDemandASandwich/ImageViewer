@@ -28,6 +28,19 @@ ImageViewer::ImageViewer(QWidget* parent)
 
 	initializeButtonGroup();
 	initializeButtonGroup3D();
+
+	ui->listWidgetLayers->setDefaultDropAction(Qt::MoveAction);
+}
+
+void ImageViewer::dropEvent(QDropEvent* event) {
+	QListWidget* source = qobject_cast<QListWidget*>(event->source());
+	if (source == ui->listWidgetLayers) {
+		event->setDropAction(Qt::MoveAction);
+		ImageViewer::dropEvent(event);
+	}
+	else {
+		ImageViewer::dropEvent(event);
+	}
 }
 
 // Event filters

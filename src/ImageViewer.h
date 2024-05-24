@@ -12,6 +12,9 @@ class ImageViewer : public QMainWindow
 public:
 	ImageViewer(QWidget* parent = Q_NULLPTR);
 
+protected:
+	void dropEvent(QDropEvent* event) override;
+
 private:
 	Ui::ImageViewerClass* ui;
 	ViewerWidget* vW;

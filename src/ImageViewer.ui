@@ -517,7 +517,7 @@
          <x>0</x>
          <y>0</y>
          <width>270</width>
-         <height>639</height>
+         <height>715</height>
         </rect>
        </property>
        <attribute name="label">
@@ -555,6 +555,34 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QListWidget" name="listWidgetLayers">
+          <property name="acceptDrops">
+           <bool>true</bool>
+          </property>
+          <property name="showDropIndicator" stdset="0">
+           <bool>true</bool>
+          </property>
+          <property name="dragEnabled">
+           <bool>true</bool>
+          </property>
+          <item>
+           <property name="text">
+            <string>1</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>New Item</string>
+           </property>
+          </item>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="pushButtonClear">
