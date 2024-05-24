@@ -24,9 +24,12 @@ private:
 
 #pragma region 2D
 
+	enum types { line, circle, polygon, curved, rectangle };
 	QColor globalColor;
 	QColor triangleColor[3];	//Leads to passing unnecessary variables, too bad!
 	int currentPointIndex;
+	int currentLayer;
+	QVector<QPoint> temp;
 
 #pragma endregion
 
@@ -51,6 +54,7 @@ private:
 
 	//My functions
 	void initializeButtonGroup();
+	void updateList(QString item);
 
 private slots:
 	void on_actionOpen_triggered();
@@ -78,4 +82,6 @@ private slots:
 	void on_pushButtonUVSphere_clicked();
 	void on_pushButtonLoad_clicked();
 	void on_pushButtonSave_clicked();
+
+	void on_listWidgetLayers_indexChanged();
 };

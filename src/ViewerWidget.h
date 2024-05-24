@@ -8,6 +8,17 @@ class ViewerWidget :public QWidget {
 private:
 #pragma region 2D
 
+	enum types { line, circle, polygon, curved, rectangle };
+	struct object {
+		object(QVector<QPoint> obj, QColor color, int layer, int type, bool fill)
+			:points(obj), color(color), layer(layer), type(type), fill(fill) {};
+		QVector<QPoint> points;
+		QColor color;
+		QColor triangleColors[3];
+		int layer, type, curvedType, fillType;
+		bool fill;
+	};
+
 	QSize areaSize = QSize(0, 0);
 	QImage* img = nullptr;
 	QPainter* painter = nullptr;
@@ -22,9 +33,7 @@ private:
 
 	//My vars
 	QPoint origin;
-	QVector<QPoint> object;
-
-	enum types { line, circle, polygon };
+	QVector<object> list;
 
 #pragma endregion
 #pragma region 3D
@@ -71,14 +80,13 @@ public:
 	void clear();
 
 	//my get/set functions
-	void addObjectPoint(QPoint point) { object.push_back(point); }
-	void addObjectPoint(int x, int y) { object.push_back(QPoint(x, y)); }
-	void debugObjectPoints(){ for (int i = 0; i < object.size(); i++) { qDebug() << object[i]; }  }
-	void clearObjectPoints() { object.clear(); }
-	QVector<QPoint> getObject() { return object; }
-	int objectSize() { return object.size(); }
-	QPoint getObjectPoint(int index) { return object.at(index); }
-	void changeObjectPoint(int index, QPoint point) { object.replace(index, point); }
+	void pushBackObject(QVector<QPoint> obj, QColor color, int layer, int type, bool fill) { list.push_back(object(obj, color, layer, type, fill)); }
+	void clearObjectPoints(int layer) { list.removeAt(layer); }
+	QVector<QPoint> getObject(int layer) { return list[layer].points; }
+	int objectSize(int layer) { return list[layer].points.size(); }
+	QPoint getObjectPoint(int layer, int index) { return list[layer].points.at(index); }
+	void changeObjectPoint(int layer, int index, QPoint point) { list[layer].points.replace(index, point); }
+	void changeObject(int layer, QVector<QPoint> obj) { list[layer].points = obj; }
 
 	void setMoveActive(bool state) { moveActive = state; }
 	bool getMoveActive() { return moveActive; }
@@ -87,24 +95,24 @@ public:
 	void setOrigin(QPoint point) { origin = point; }
 	QPoint getOrigin() { return origin; }
 
-	int getClosestPointIndex(QPoint P);
+	int getClosestPointIndex(int layer, QPoint P);
 
 	//My functions
 	void DDA(QPoint start, QPoint end, QColor color);
 	void Bresenham(QPoint start, QPoint end, QColor color);
 	void drawCircle(QPoint center, QPoint end, QColor color);
 	void drawCircle(QPoint center, int r, QColor color);
-	void drawPolygon(QVector<QPoint> points, QColor color, QColor triangleColor[3] = {0}, int algtype = 0, int triangleFillType = 0);
+	void drawPolygon(QVector<QPoint> points, QColor color, bool fill, QColor triangleColor[3] = {0}, int algtype = 0, int triangleFillType = 0);
 	void drawRectangle(QPoint start, QPoint end, QColor color, int fillTrue = 0);
-	void drawType(QColor color, QColor triangleColor[3],int type, int algtype = 0, int triangleFillType = 0);
+	void drawList(int algtype = 0);
 
 	void drawPolygonWireframe(QVector<QPoint> points, QColor color);
 
-	void rotateObject(int degrees, int type, QColor color, QColor triangleColor[3], int algtype = 0, int triangleFillType = 0);
-	void scaleObject(double multiplier, QColor color, QColor triangleColor[3], int type, int algtype = 0, int triangleFillType = 0);
-	void scaleObject(double multiplierX, double multiplierY, QColor color, QColor triangleColor[3], int type, int algtype = 0, int triangleFillType = 0);
-	void mirrorObject(int type, QColor color, QColor triangleColor[3], int algtype = 0, int triangleFillType = 0);
-	void shearObjectDx(int type, QColor color, QColor triangleColor[3], double dx, int algtype = 0, int triangleFillType = 0);
+	void rotateObject(int layer, int degrees, int type, QColor color, QColor triangleColor[3], int algtype = 0, int triangleFillType = 0);
+	void scaleObject(int layer, double multiplier, QColor color, QColor triangleColor[3], int type, int algtype = 0, int triangleFillType = 0);
+	void scaleObject(int layer, double multiplierX, double multiplierY, QColor color, QColor triangleColor[3], int type, int algtype = 0, int triangleFillType = 0);
+	void mirrorObject(int layer, int type, QColor color, QColor triangleColor[3], int algtype = 0, int triangleFillType = 0);
+	void shearObjectDx(int layer, int type, QColor color, QColor triangleColor[3], double dx, int algtype = 0, int triangleFillType = 0);
 	QVector<QPoint> cropCB(QPoint start, QPoint end);
 	QVector<QPoint> cropSH(QVector<QPoint> V);
 

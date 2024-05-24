@@ -187,7 +187,7 @@ void ViewerWidget::drawCircle(QPoint center, QPoint end, QColor color) {
 void ViewerWidget::drawCircle(QPoint center, int r, QColor color) {
 	drawCircle(center, QPoint(center.x() + r, center.y()), color);
 }
-void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, QColor triangleColor[3], int algtype, int triangleFillType)
+void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, bool fill, QColor triangleColor[3], int algtype, int triangleFillType)
 {
 	QVector<QPoint> cropped = cropSH(points);
 
@@ -233,25 +233,32 @@ void ViewerWidget::drawRectangle(QPoint start, QPoint end, QColor color, int fil
 	QPoint p3(end.x(), start.y());
 	QVector<QPoint> p = { start, p2, end, p3 };
 
-	drawPolygon(p, color);
+	drawPolygon(p, color, fillTrue);
 }
-void ViewerWidget::drawType(QColor color, QColor triangleColor[3], int type, int algtype, int triangleFillType) {
-	enum types { line, circle, polygon };
-
+void ViewerWidget::drawList(int algtype) {
 	clear();
 
-	switch (type) {
-	case line:
-		drawLine(object.at(0), object.at(1), color, algtype);
-		break;
-	case circle:
-		drawCircle(object.at(0), object.at(1), color);
-		break;
-	case polygon:
-		drawPolygon(object, color, triangleColor, algtype, triangleFillType);
-		break;
-	default:
-		break;
+	for (int i = list.size() - 1; i >= 0; i--) {
+		object o = list[i];
+		switch (o.type) {
+		case line:
+			drawLine(o.points.at(0), o.points.at(1), o.color, algtype);
+			break;
+		case circle:
+			drawCircle(o.points.at(0), o.points.at(1), o.color);
+			break;
+		case polygon:
+			drawPolygon(o.points, o.color, o.fill, o.triangleColors, algtype, o.fillType);
+			break;
+		case curved:
+			drawCurve(o.points, o.color, o.curvedType);
+			break;
+		case rectangle:
+			drawRectangle(o.points.at(0), o.points.at(1), o.color, o.fill);
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -260,12 +267,13 @@ void ViewerWidget::showPoints(QVector<QPoint> obj, QColor color) {
 		drawCircle(p, 3, color);
 	}
 }
-int ViewerWidget::getClosestPointIndex(QPoint P) {
+int ViewerWidget::getClosestPointIndex(int layer, QPoint P) {
 	int n = 0;
-	double d1 = abs(object[0].y() - P.y()) + abs(object[0].x() - P.x());
+	QVector<QPoint> o = list[layer].points;
+	double d1 = abs(o[0].y() - P.y()) + abs(o[0].x() - P.x());
 
-	for (qsizetype i = 1; i < object.size(); i++) {
-		double d2 = abs(object[i].y() - P.y()) + abs(object[i].x() - P.x());
+	for (qsizetype i = 1; i < o.size(); i++) {
+		double d2 = abs(o[i].y() - P.y()) + abs(o[i].x() - P.x());
 
 		if (d2 < d1) {
 			d1 = d2;
@@ -428,22 +436,24 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 	update();
 }
 
-void ViewerWidget::rotateObject(int degrees, int type, QColor color, QColor triangleColor[3], int algtype, int triangleFillType) {
+void ViewerWidget::rotateObject(int layer, int degrees, int type, QColor color, QColor triangleColor[3], int algtype, int triangleFillType) {
 	double theta = ((double)degrees / (double)180) * M_PI;
-	double cx = object.at(0).x();
-	double cy = object.at(0).y();
+	QVector<QPoint>& o = list[layer].points;
+	double cx = o.at(0).x();
+	double cy = o.at(0).y();
 
-	for (qsizetype i = 1; i < object.size(); i++) {
-		double x = cos(theta) * (object.at(i).x() - cx) + sin(theta) * (object.at(i).y() - cy) + cx;
-		double y = -sin(theta) * (object.at(i).x() - cx) + cos(theta) * (object.at(i).y() - cy) + cy;
+	for (qsizetype i = 1; i < o.size(); i++) {
+		double x = cos(theta) * (o.at(i).x() - cx) + sin(theta) * (o.at(i).y() - cy) + cx;
+		double y = -sin(theta) * (o.at(i).x() - cx) + cos(theta) * (o.at(i).y() - cy) + cy;
 
 		QPoint p(x, y);
-		object.replace(i, p);
+		o.replace(i, p);
 	}
 
-	drawType(color, triangleColor, type, algtype, triangleFillType);
+	drawList();
 }
-void ViewerWidget::scaleObject(double multiplier, QColor color, QColor triangleColor[3], int type, int algtype, int triangleFillType) {
+void ViewerWidget::scaleObject(int layer, double multiplier, QColor color, QColor triangleColor[3], int type, int algtype, int triangleFillType) {
+	QVector<QPoint>& object = list[layer].points;
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
 
@@ -452,9 +462,10 @@ void ViewerWidget::scaleObject(double multiplier, QColor color, QColor triangleC
 		object.replace(i, p);
 	}
 
-	drawType(color, triangleColor, type, algtype, triangleFillType);
+	drawList();
 }
-void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor color, QColor triangleColor[3], int type, int algtype, int triangleFillType) {
+void ViewerWidget::scaleObject(int layer, double multiplierX, double multiplierY, QColor color, QColor triangleColor[3], int type, int algtype, int triangleFillType) {
+	QVector<QPoint>& object = list[layer].points;
 	double cx = object.at(0).x();
 	double cy = object.at(0).y();
 
@@ -465,9 +476,10 @@ void ViewerWidget::scaleObject(double multiplierX, double multiplierY, QColor co
 		object.replace(i, p);
 	}
 
-	drawType(color, triangleColor, type, algtype, triangleFillType);
+	drawList();
 }
-void ViewerWidget::mirrorObject(int type, QColor color, QColor triangleColor[3], int algtype, int triangleFillType) {
+void ViewerWidget::mirrorObject(int layer, int type, QColor color, QColor triangleColor[3], int algtype, int triangleFillType) {
+	QVector<QPoint>& object = list[layer].points;
 	QPoint n(object.at(1).y() - object.at(0).y(), object.at(0).x() - object.at(1).x());
 	double a = object.at(1).y() - object.at(0).y();
 	double b = object.at(0).x() - object.at(1).x();
@@ -481,14 +493,15 @@ void ViewerWidget::mirrorObject(int type, QColor color, QColor triangleColor[3],
 		object.replace(i, QPoint(x - 2 * a * d, y - 2 * b * d));
 	}
 
-	drawType(color, triangleColor, type, algtype, triangleFillType);
+	drawList();
 }
-void ViewerWidget::shearObjectDx(int type, QColor color, QColor triangleColor[3], double dx, int algtype, int triangleFillType) {
+void ViewerWidget::shearObjectDx(int layer, int type, QColor color, QColor triangleColor[3], double dx, int algtype, int triangleFillType) {
+	QVector<QPoint>& object = list[layer].points;
 	for (qsizetype i = 1; i < object.size(); i++) {
 		object.replace(i, QPoint(object.at(i).x() + dx * object.at(i).y(), object.at(i).y()));
 	}
 	
-	drawType(color, triangleColor, type, algtype, triangleFillType);
+	drawList();
 }
 
 QVector<QPoint> ViewerWidget::cropCB(QPoint start, QPoint end) {
@@ -883,10 +896,8 @@ void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color, int sho
 	if (moveActive == false) {
 		for (qsizetype i = points.size() - 1; i >= 0; i--) {	//point1, vectorEnd1, point2, vectorEnd2...
 			QPoint temp(points[i].x(), points[i].y() - 100);
-			object.insert(i + 1, temp);
+			points.insert(i + 1, temp);
 		}
-
-		points = object;
 	}
 
 	for (qsizetype i = 0; i < points.size(); i += 2) {
