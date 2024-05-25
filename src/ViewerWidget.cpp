@@ -200,13 +200,15 @@ void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, bool fill, 
 		}
 	}
 
-	if (points.size() > 3) {
-		scanLine(points, color);
+	if(fill){
+		if (points.size() > 3) {
+			scanLine(points, color);
+		}
+		else if (points.size() == 3) {
+			fillTriangle(points, color, triangleFillType, triangleColor);
+		}
 	}
-	else if (points.size() == 3) {
-		fillTriangle(points, color, triangleFillType, triangleColor);
-	}
-	
+
 	for (int i = 0; i < points.size(); i++) {
 		drawLine(points[i], points[(i + 1) % points.size()], color, algtype, false, false);
 	}
@@ -228,13 +230,6 @@ void ViewerWidget::drawPolygonWireframe(QVector<QPoint> points, QColor color)
 		drawLine(points[i], points[(i + 1) % points.size()], color, 0, false, false);
 	}
 }
-void ViewerWidget::drawRectangle(QPoint start, QPoint end, QColor color, int fillTrue) {
-	QPoint p2(start.x(), end.y());
-	QPoint p3(end.x(), start.y());
-	QVector<QPoint> p = { start, p2, end, p3 };
-
-	drawPolygon(p, color, fillTrue);
-}
 void ViewerWidget::drawList(int algtype) {
 	clear();
 
@@ -254,7 +249,7 @@ void ViewerWidget::drawList(int algtype) {
 			drawCurve(o.points, o.color, o.curvedType);
 			break;
 		case rectangle:
-			drawRectangle(o.points.at(0), o.points.at(1), o.color, o.fill);
+			drawPolygon(o.points, o.color, o.fill);
 			break;
 		default:
 			break;

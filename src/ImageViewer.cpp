@@ -93,7 +93,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 					w->drawLine(w->getDrawLineBegin(), e->pos(), globalColor, ui->comboBoxLineAlg->currentIndex());
 					w->setDrawLineActivated(false);
 					w->setMoveActive(true);
-					w->pushBackObject({w->getDrawLineBegin(), e->pos()}, globalColor, ui->listWidgetLayers->count(), types::line, ui->checkBoxFill->isChecked());
+					w->pushBackObject({w->getDrawLineBegin(), e->pos()}, globalColor, 0, types::line, ui->checkBoxFill->isChecked());
 					updateList("Line");
 				}
 				else {
@@ -107,7 +107,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 					w->drawCircle(w->getDrawLineBegin(), e->pos(), globalColor);
 					w->setDrawLineActivated(false);
 					w->setMoveActive(true);
-					w->pushBackObject({ w->getDrawLineBegin(), e->pos() }, globalColor, ui->listWidgetLayers->count(), types::circle, false);
+					w->pushBackObject({ w->getDrawLineBegin(), e->pos() }, globalColor, 0, types::circle, false);
 					updateList("Circle");
 				}
 				else {
@@ -118,16 +118,21 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 			}
 			else if (ui->toolButtonDrawPolygon->isChecked()) {
 				w->update();
+				temp.append(e->pos());
 			}
 			else if (ui->toolButtonDrawCurved->isChecked()) {	//duplicate code left for possible future expansion
 				w->update();
+				temp.append(e->pos());
 			}
 			else if (ui->toolButtonDrawRectangle->isChecked()) {
 				if (w->getDrawLineActivated()) {
-					w->drawRectangle(w->getDrawLineBegin(), e->pos(), globalColor);
+					QPoint p2(w->getDrawLineBegin().x(), e->pos().y());
+					QPoint p3(e->pos().x(), w->getDrawLineBegin().y());
+					QVector<QPoint> p = { w->getDrawLineBegin(), p2, e->pos(), p3 };
+					w->drawPolygon(p, globalColor, ui->checkBoxFill->isChecked());
 					w->setDrawLineActivated(false);
 					w->setMoveActive(true);
-					w->pushBackObject({ w->getDrawLineBegin(), e->pos() }, globalColor ,ui->listWidgetLayers->count(), types::rectangle, ui->checkBoxFill->isChecked());
+					w->pushBackObject( p, globalColor , 0, types::rectangle, ui->checkBoxFill->isChecked());
 					updateList("Rectangle");
 				}
 				else {
@@ -137,7 +142,6 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 				}
 			}
 
-			temp.append(e->pos());
 			w->setPixel(e->pos().x(), e->pos().y(), Qt::red);
 		}
 		else if (e->button() == Qt::RightButton) {
@@ -155,7 +159,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 				updateList("Curved line");
 			}
 
-			w->pushBackObject(temp, globalColor, ui->listWidgetLayers->count(), type, fill);
+			w->pushBackObject(temp, globalColor, 0, type, fill);
 			w->setMoveActive(true);
 			temp.clear();
 		}
@@ -178,7 +182,7 @@ void ImageViewer::ViewerWidgetMouseButtonRelease(ViewerWidget* w, QEvent* event)
 		QPoint move = e->pos() - w->getOrigin();
 		QVector<QPoint> newObj;
 		
-		if (ui->toolButtonDrawPolygon->isChecked()) {
+		if (ui->toolButtonDrawPolygon->isChecked() || ui->toolButtonDrawRectangle->isChecked()) {
 			QVector<QPoint> temp = w->getObject(currentLayer);
 
 			for (int i = 0; i < temp.size(); i++) {
@@ -201,7 +205,14 @@ void ImageViewer::ViewerWidgetMouseButtonRelease(ViewerWidget* w, QEvent* event)
 			newObj = { w->getObject(currentLayer).at(0) + move, w->getObject(currentLayer).at(1) + move };
 		}
 
-		w->changeObject(currentLayer, newObj);
+		if (ui->toolButtonDrawPolygon->isChecked() || ui->toolButtonDrawRectangle->isChecked()) {
+			bool fill = (ui->checkBoxFill->isChecked() && newObj.size() >= 3) ? true : false;
+			w->changeObject(currentLayer, newObj, triangleColor, fill, ui->comboBoxFillType->currentIndex());
+		}
+		else {
+			w->changeObject(currentLayer, newObj);
+		}
+
 		w->clear();
 		w->drawList();
 	}
@@ -222,12 +233,12 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 			w->drawCircle(w->getObject(currentLayer).at(0) + move, w->getObject(currentLayer).at(1) + move, globalColor);
 		}
 		else if (ui->toolButtonDrawPolygon->isChecked()) {
-			bool fill = (ui->checkBoxFill->isChecked() && temp.size() >= 3) ? true : false;
 			QVector<QPoint> temp = w->getObject(currentLayer);
 
 			for (int i = 0; i < temp.size(); i++) {
 				temp[i] += move;
 			}
+			bool fill = (ui->checkBoxFill->isChecked() && temp.size() >= 3) ? true : false;
 
 			w->clear();
 			w->drawPolygon(temp, globalColor, fill, triangleColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
@@ -244,8 +255,15 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 			w->drawCurve(temp, globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
 		}
 		else if (ui->toolButtonDrawRectangle->isChecked()) {
+			QVector<QPoint> temp = w->getObject(currentLayer);
+
+			for (int i = 0; i < temp.size(); i++) {
+				temp[i] += move;
+			}
+			bool fill = (ui->checkBoxFill->isChecked() && temp.size() >= 3) ? true : false;
+
 			w->clear();
-			w->drawRectangle(w->getObject(currentLayer).at(0) + move, w->getObject(currentLayer).at(1) + move, globalColor);
+			w->drawPolygon(temp, globalColor, fill);
 		}
 	}
 }
@@ -403,6 +421,10 @@ void ImageViewer::on_pushButtonClear_clicked()
 	vW->clear();
 	vW->clearObjectPoints(currentLayer);
 	vW->setMoveActive(false);
+	vW->clearList();
+
+	ui->listWidgetLayers->clear();
+	currentLayer = 0;
 }
 
 void ImageViewer::initializeButtonGroup()
@@ -664,14 +686,14 @@ void ImageViewer::on_pushButtonSave_clicked() {
 	}
 }
 
-void ImageViewer::on_listWidgetLayers_indexChanged() {
+void ImageViewer::on_listWidgetLayers_currentChanged() {
 	currentLayer = ui->listWidgetLayers->currentRow();
 }
 
 void ImageViewer::updateList(QString item) {
 	QListWidget* l = ui->listWidgetLayers;
 
-	currentLayer = l->count();
-	l->addItem(item);
+	currentLayer = 0;
+	l->insertItem(0, item);
 	l->setCurrentRow(currentLayer);
 }

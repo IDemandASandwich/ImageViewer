@@ -80,13 +80,23 @@ public:
 	void clear();
 
 	//my get/set functions
-	void pushBackObject(QVector<QPoint> obj, QColor color, int layer, int type, bool fill) { list.push_back(object(obj, color, layer, type, fill)); }
+	void pushBackObject(QVector<QPoint> obj, QColor color, int layer, int type, bool fill) {
+		for (object o : list) {
+			o.layer++;
+		}
+		list.push_front(object(obj, color, layer, type, fill));
+	}
 	void clearObjectPoints(int layer) { list.removeAt(layer); }
+	void clearList() { list.clear(); }
 	QVector<QPoint> getObject(int layer) { return list[layer].points; }
 	int objectSize(int layer) { return list[layer].points.size(); }
 	QPoint getObjectPoint(int layer, int index) { return list[layer].points.at(index); }
 	void changeObjectPoint(int layer, int index, QPoint point) { list[layer].points.replace(index, point); }
 	void changeObject(int layer, QVector<QPoint> obj) { list[layer].points = obj; }
+	void changeObject(int layer, QVector<QPoint> obj, QColor TC[3], bool fill, int fillType) {
+		list[layer].points = obj; list[layer].fill = fill; list[layer].fillType = fillType; 
+		list[layer].triangleColors[0] = TC[0]; list[layer].triangleColors[1] = TC[1]; list[layer].triangleColors[2] = TC[2];
+	}
 
 	void setMoveActive(bool state) { moveActive = state; }
 	bool getMoveActive() { return moveActive; }
@@ -103,7 +113,6 @@ public:
 	void drawCircle(QPoint center, QPoint end, QColor color);
 	void drawCircle(QPoint center, int r, QColor color);
 	void drawPolygon(QVector<QPoint> points, QColor color, bool fill, QColor triangleColor[3] = {0}, int algtype = 0, int triangleFillType = 0);
-	void drawRectangle(QPoint start, QPoint end, QColor color, int fillTrue = 0);
 	void drawList(int algtype = 0);
 
 	void drawPolygonWireframe(QVector<QPoint> points, QColor color);
