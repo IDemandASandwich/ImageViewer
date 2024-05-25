@@ -233,8 +233,7 @@ void ViewerWidget::drawPolygonWireframe(QVector<QPoint> points, QColor color)
 void ViewerWidget::drawList(int algtype) {
 	clear();
 
-	for (int i = list.size() - 1; i >= 0; i--) {
-		object o = list[i];
+	for (object o : list) {
 		switch (o.type) {
 		case line:
 			drawLine(o.points.at(0), o.points.at(1), o.color, algtype);

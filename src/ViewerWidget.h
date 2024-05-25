@@ -83,12 +83,16 @@ public:
 
 	//my get/set functions
 	void pushBackObject(QVector<QPoint> obj, QColor color, int layer, int type, bool fill) {
-		for (object o : list) {
-			o.layer++;
-		}
-		list.push_front(object(obj, color, layer, type, fill));
+		list.push_back(object(obj, color, layer, type, fill));
 	}
-	void clearObjectPoints(int layer) { list.removeAt(layer); }
+	void removeObject(int layer) { 
+		list.removeAt(layer); 
+		for (object& o : list) {
+			if (o.layer > layer) {
+				o.layer--;
+			}
+		}
+	}
 	void clearList() { list.clear(); }
 	QVector<QPoint> getObjectPoints(int layer) { return list[layer].points; }
 	object getObject(int layer) { return list[layer]; }

@@ -94,7 +94,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 					w->drawLine(w->getDrawLineBegin(), e->pos(), globalColor, ui->comboBoxLineAlg->currentIndex());
 					w->setDrawLineActivated(false);
 					w->setMoveActive(true);
-					w->pushBackObject({w->getDrawLineBegin(), e->pos()}, globalColor, 0, types::line, ui->checkBoxFill->isChecked());
+					w->pushBackObject({w->getDrawLineBegin(), e->pos()}, globalColor, ui->listWidgetLayers->count(), types::line, ui->checkBoxFill->isChecked());
 					updateList("Line");
 				}
 				else {
@@ -108,7 +108,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 					w->drawCircle(w->getDrawLineBegin(), e->pos(), globalColor);
 					w->setDrawLineActivated(false);
 					w->setMoveActive(true);
-					w->pushBackObject({ w->getDrawLineBegin(), e->pos() }, globalColor, 0, types::circle, false);
+					w->pushBackObject({ w->getDrawLineBegin(), e->pos() }, globalColor, ui->listWidgetLayers->count(), types::circle, false);
 					updateList("Circle");
 				}
 				else {
@@ -133,7 +133,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 					w->drawPolygon(p, globalColor, ui->checkBoxFill->isChecked());
 					w->setDrawLineActivated(false);
 					w->setMoveActive(true);
-					w->pushBackObject( p, globalColor , 0, types::rectangle, ui->checkBoxFill->isChecked());
+					w->pushBackObject( p, globalColor , ui->listWidgetLayers->count(), types::rectangle, ui->checkBoxFill->isChecked());
 					updateList("Rectangle");
 				}
 				else {
@@ -152,13 +152,13 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 				fill = (ui->checkBoxFill->isChecked() && temp.size() >= 3) ? true : false;
 				w->drawPolygon(temp, globalColor, fill, triangleColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 				type = types::polygon;
-				w->pushBackObject(temp, globalColor, 0, type, fill);
+				w->pushBackObject(temp, globalColor, ui->listWidgetLayers->count(), type, fill);
 				updateList("Polygon");
 			}
 			if (ui->toolButtonDrawCurved->isChecked()) {
 				w->drawCurve(temp, globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
 				type = types::curved;
-				w->pushBackObject(temp, globalColor, currentLayer, type, false);
+				w->pushBackObject(temp, globalColor, ui->listWidgetLayers->count(), type, false);
 				updateList("Curved line");
 			}
 
@@ -372,9 +372,16 @@ void ImageViewer::on_actionSave_as_triggered()
 }
 void ImageViewer::on_actionClear_triggered()
 {
-	vW->clear();
-	vW->clearObjectPoints(currentLayer);
+	vW->removeObject(currentLayer);
 	vW->setMoveActive(false);
+
+	if (currentLayer >= 0 && currentLayer < ui->listWidgetLayers->count()) {
+		delete ui->listWidgetLayers->takeItem(currentLayer);
+	}
+	currentLayer = 0;
+
+	vW->clear();
+	vW->drawList();
 }
 void ImageViewer::on_actionExit_triggered()
 {
@@ -421,13 +428,22 @@ void ImageViewer::on_pushButtonSetColorC_clicked()
 
 void ImageViewer::on_pushButtonClear_clicked()
 {
-	vW->clear();
-	vW->clearObjectPoints(currentLayer);
-	vW->setMoveActive(false);
-	vW->clearList();
+	if (ui->listWidgetLayers->count() <= 0)
+		return;
 
-	ui->listWidgetLayers->clear();
-	currentLayer = 0;
+	vW->setMoveActive(false);
+
+	vW->removeObject(currentLayer);
+	if (currentLayer >= 0 && currentLayer < ui->listWidgetLayers->count()) {
+		delete ui->listWidgetLayers->takeItem(currentLayer);
+
+		if(currentLayer > 0)
+			currentLayer--;
+	}
+	ui->listWidgetLayers->setCurrentRow(currentLayer);
+
+	vW->clear();
+	vW->drawList();
 }
 
 void ImageViewer::initializeButtonGroup()
@@ -689,14 +705,17 @@ void ImageViewer::on_pushButtonSave_clicked() {
 	}
 }
 
-void ImageViewer::on_listWidgetLayers_currentRowChanged(int currentRow) {
+void ImageViewer::on_listWidgetLayers_itemClicked(QListWidgetItem* item) {
+	int currentRow = ui->listWidgetLayers->row(item);
 	currentLayer = currentRow;
 	object o = vW->getObject(currentLayer);
+	globalColor = o.color;
 
 	QString style_sheet = QString("background-color: #%1;").arg(o.color.rgba(), 0, 16);
 	ui->pushButtonSetColor->setStyleSheet(style_sheet);
 
 	ui->radioButtonMove->setChecked(true);
+	ui->spinBoxLayer->setValue(o.layer);
 
 	switch (o.type) {
 	case(types::line):
@@ -733,9 +752,7 @@ void ImageViewer::on_listWidgetLayers_currentRowChanged(int currentRow) {
 }
 
 void ImageViewer::updateList(QString item) {
-	QListWidget* l = ui->listWidgetLayers;
-
-	currentLayer = 0;
-	l->insertItem(0, item);
-	l->setCurrentRow(currentLayer);
+	currentLayer = ui->listWidgetLayers->count();
+	ui->listWidgetLayers->addItem(item);
+	ui->listWidgetLayers->setCurrentRow(currentLayer);
 }
