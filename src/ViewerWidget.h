@@ -3,21 +3,22 @@
 #include "halfEdge.h"
 #include "light.h";
 
+enum types { line, circle, polygon, curved, rectangle };
+struct object {
+	object(QVector<QPoint> obj, QColor color, int layer, int type, bool fill)
+		:points(obj), color(color), layer(layer), type(type), fill(fill) {};
+	QVector<QPoint> points;
+	QColor color;
+	QColor triangleColors[3];
+	int layer, type, curvedType, fillType;
+	bool fill;
+};
+
 class ViewerWidget :public QWidget {
 	Q_OBJECT
+
 private:
 #pragma region 2D
-
-	enum types { line, circle, polygon, curved, rectangle };
-	struct object {
-		object(QVector<QPoint> obj, QColor color, int layer, int type, bool fill)
-			:points(obj), color(color), layer(layer), type(type), fill(fill) {};
-		QVector<QPoint> points;
-		QColor color;
-		QColor triangleColors[3];
-		int layer, type, curvedType, fillType;
-		bool fill;
-	};
 
 	QSize areaSize = QSize(0, 0);
 	QImage* img = nullptr;
@@ -45,6 +46,7 @@ private:
 #pragma endregion
 
 public:
+
 	ViewerWidget(QSize imgSize, QWidget* parent = Q_NULLPTR);
 	~ViewerWidget();
 	void resizeWidget(QSize size);
@@ -88,7 +90,8 @@ public:
 	}
 	void clearObjectPoints(int layer) { list.removeAt(layer); }
 	void clearList() { list.clear(); }
-	QVector<QPoint> getObject(int layer) { return list[layer].points; }
+	QVector<QPoint> getObjectPoints(int layer) { return list[layer].points; }
+	object getObject(int layer) { return list[layer]; }
 	int objectSize(int layer) { return list[layer].points.size(); }
 	QPoint getObjectPoint(int layer, int index) { return list[layer].points.at(index); }
 	void changeObjectPoint(int layer, int index, QPoint point) { list[layer].points.replace(index, point); }
@@ -97,6 +100,7 @@ public:
 		list[layer].points = obj; list[layer].fill = fill; list[layer].fillType = fillType; 
 		list[layer].triangleColors[0] = TC[0]; list[layer].triangleColors[1] = TC[1]; list[layer].triangleColors[2] = TC[2];
 	}
+	void changeObjectColor(int layer, QColor color) { list[layer].color = color; }
 
 	void setMoveActive(bool state) { moveActive = state; }
 	bool getMoveActive() { return moveActive; }

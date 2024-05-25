@@ -83,5 +83,5 @@ private slots:
 	void on_pushButtonLoad_clicked();
 	void on_pushButtonSave_clicked();
 
-	void on_listWidgetLayers_currentChanged();
+	void on_listWidgetLayers_currentRowChanged(int currentRow);
 };
