@@ -13,6 +13,10 @@ struct object {
 	};
 	object(QVector<QPoint> obj, QColor color, int layer, int type, int curvedType)
 		:points(obj), color(color), layer(layer), type(type), curvedType(curvedType), fill(false), fillType(0) {};
+	object(QVector<QPoint> obj, QColor color, int layer, int type, bool fill, QColor TC[3], int fillType, int curvedType)
+		:points(obj), color(color), layer(layer), type(type), fill(fill), fillType(fillType), curvedType(curvedType) {
+		triangleColors[0] = TC[0]; triangleColors[1] = TC[1]; triangleColors[2] = TC[2];
+	};
 
 	QVector<QPoint> points;
 	QColor color;
@@ -99,6 +103,9 @@ public:
 	}
 	void pushBackObject(QVector<QPoint> obj, QColor color, int layer, int type, int curvedType) {
 		list.push_back(object(obj, color, layer, type, curvedType));
+	}
+	void pushBackObject(QVector<QPoint> obj, QColor color, int layer, int type, bool fill, QColor TC[3], int fillType, int curvedType) {
+		list.push_back(object(obj, color, layer, type, fill, TC, fillType, curvedType));
 	}
 	void removeObject(int layer) { 
 		list.removeAt(layer); 

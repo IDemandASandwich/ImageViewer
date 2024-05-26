@@ -341,16 +341,16 @@ bool ImageViewer::saveState(QString filename) {
 	QTextStream out(&file);
 
 	for (object o : l) {
+		out << o.points.size() << " ";
 		for (QPoint p : o.points) {
 			out << p.x() << " " << p.y() << " ";
 		}
-		out << " , ";
-		out << o.color.rgba() << " , ";
-		out << o.triangleColors[0].rgba() << " " << o.triangleColors[1].rgba() << " " << o.triangleColors[2].rgba() << " , ";
-		out << o.layer << " , ";
-		out << o.type << " , ";
-		out << o.curvedType << " , ";
-		out << o.fillType << " , ";
+		out << o.color.rgba() << " ";
+		out << o.triangleColors[0].rgba() << " " << o.triangleColors[1].rgba() << " " << o.triangleColors[2].rgba() << " ";
+		out << o.layer << " ";
+		out << o.type << " ";
+		out << o.curvedType << " ";
+		out << o.fillType << " ";
 		out << o.fill << "\n";
 	}
 
@@ -359,6 +359,59 @@ bool ImageViewer::saveState(QString filename) {
 	return true;
 }
 bool ImageViewer::loadState(QString filename) {
+	QFile file(filename);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		return false;
+	}
+
+	vW->clearList();
+	ui->listWidgetLayers->clear();
+
+	QTextStream in(&file);
+	while (!in.atEnd()) {
+		QString line = in.readLine();
+		QStringList l = line.split(" ");
+
+		int numPoints = l[0].toInt() * 2;
+		QStringList XY = l.mid(1, numPoints);
+		QVector<QPoint> points;
+		for (int i = 0; i < XY.size() - 1; i+=2) {
+			points.append(QPoint(XY[i].toInt(), XY[i + 1].toInt()));
+		}
+
+		QColor color = QColor::fromRgba(l[numPoints + 1].toUInt());
+		QColor TC[3] = {QColor::fromRgba(l[numPoints + 2].toUInt()),QColor::fromRgba(l[numPoints + 3].toUInt()),QColor::fromRgba(l[numPoints + 4].toUInt())};
+		int layer = l[numPoints + 5].toInt();
+		int type = l[numPoints + 6].toInt();
+		int curvedType = l[numPoints + 7].toInt();
+		int fillType = l[numPoints + 8].toInt();
+		bool fill = l[numPoints + 9].toInt();
+
+		vW->pushBackObject(points, color, layer, type, fill, TC, fillType, curvedType);
+
+		switch (type) {
+		case types::line:
+			updateList("Line");
+			break;
+		case types::circle:
+			updateList("Circle");
+			break;
+		case types::polygon:
+			updateList("Polygon");
+			break;
+		case types::curved:
+			updateList("Curved line");
+			break;
+		case types::rectangle:
+			updateList("Rectangle");
+			break;
+		}
+	}
+
+	file.close();
+
+	vW->clear();
+	vW->drawList();
 
 	return true;
 }
@@ -767,7 +820,20 @@ void ImageViewer::on_pushButtonSaveState_clicked() {
 	}
 }
 void ImageViewer::on_pushButtonLoadState_clicked() {
+	QString folder = settings.value("folder_img_load_path", "").toString();
 
+	QString fileFilter = "Image viewer save state (*.ivss)";
+	QString fileName = QFileDialog::getOpenFileName(this, "Load state", folder, fileFilter);
+	if (fileName.isEmpty()) { return; }
+
+	QFileInfo fi(fileName);
+	settings.setValue("folder_img_load_path", fi.absoluteDir().absolutePath());
+
+	if (!loadState(fileName)) {
+		msgBox.setText("Unable to load state.");
+		msgBox.setIcon(QMessageBox::Warning);
+		msgBox.exec();
+	}
 }
 
 void ImageViewer::on_listWidgetLayers_itemClicked(QListWidgetItem* item) {
