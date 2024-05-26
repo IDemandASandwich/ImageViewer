@@ -84,4 +84,5 @@ private slots:
 	void on_pushButtonSave_clicked();
 
 	void on_listWidgetLayers_itemClicked(QListWidgetItem* item);
+	void on_radioButtonMove_toggled(bool checked);
 };

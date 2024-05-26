@@ -93,8 +93,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 				if (w->getDrawLineActivated()) {
 					w->drawLine(w->getDrawLineBegin(), e->pos(), globalColor, ui->comboBoxLineAlg->currentIndex());
 					w->setDrawLineActivated(false);
-					w->setMoveActive(true);
-					w->pushBackObject({w->getDrawLineBegin(), e->pos()}, globalColor, ui->listWidgetLayers->count(), types::line, ui->checkBoxFill->isChecked());
+					w->pushBackObject({w->getDrawLineBegin(), e->pos()}, globalColor, ui->listWidgetLayers->count(), types::line);
 					updateList("Line");
 				}
 				else {
@@ -107,8 +106,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 				if (w->getDrawLineActivated()) {
 					w->drawCircle(w->getDrawLineBegin(), e->pos(), globalColor);
 					w->setDrawLineActivated(false);
-					w->setMoveActive(true);
-					w->pushBackObject({ w->getDrawLineBegin(), e->pos() }, globalColor, ui->listWidgetLayers->count(), types::circle, false);
+					w->pushBackObject({ w->getDrawLineBegin(), e->pos() }, globalColor, ui->listWidgetLayers->count(), types::circle);
 					updateList("Circle");
 				}
 				else {
@@ -130,10 +128,10 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 					QPoint p2(w->getDrawLineBegin().x(), e->pos().y());
 					QPoint p3(e->pos().x(), w->getDrawLineBegin().y());
 					QVector<QPoint> p = { w->getDrawLineBegin(), p2, e->pos(), p3 };
+					QColor C[3] = { Qt::black,Qt::black, Qt::black };
+					w->pushBackObject(p, globalColor, ui->listWidgetLayers->count(), types::rectangle, ui->checkBoxFill->isChecked(), C, 0);
 					w->drawPolygon(p, globalColor, ui->checkBoxFill->isChecked());
 					w->setDrawLineActivated(false);
-					w->setMoveActive(true);
-					w->pushBackObject( p, globalColor , ui->listWidgetLayers->count(), types::rectangle, ui->checkBoxFill->isChecked());
 					updateList("Rectangle");
 				}
 				else {
@@ -156,18 +154,17 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 				updateList("Polygon");
 			}
 			if (ui->toolButtonDrawCurved->isChecked()) {
-				w->drawCurve(temp, globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
 				type = types::curved;
-				w->pushBackObject(temp, globalColor, ui->listWidgetLayers->count(), type, false);
+				w->pushBackObject(temp, globalColor, ui->listWidgetLayers->count(), type, ui->comboBoxCurvedType->currentIndex());
+				w->drawCurve(currentLayer, temp, globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
 				updateList("Curved line");
 			}
 
-			w->setMoveActive(true);
 			temp.clear();
 		}
 	}
 	else {
-		if (e->button() == Qt::LeftButton) {
+		if (e->button() == Qt::LeftButton && ui->listWidgetLayers->count() > 0) {
 			currentPointIndex = w->getClosestPointIndex(currentLayer, e->pos());
 			w->setMoving(true);
 			w->setOrigin(e->pos());
@@ -254,7 +251,7 @@ void ImageViewer::ViewerWidgetMouseMove(ViewerWidget* w, QEvent* event)
 			}
 
 			w->clear();
-			w->drawCurve(temp, globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
+			w->drawCurve(currentLayer, temp, globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
 		}
 		else if (ui->toolButtonDrawRectangle->isChecked()) {
 			QVector<QPoint> temp = w->getObjectPoints(currentLayer);
@@ -373,7 +370,6 @@ void ImageViewer::on_actionSave_as_triggered()
 void ImageViewer::on_actionClear_triggered()
 {
 	vW->removeObject(currentLayer);
-	vW->setMoveActive(false);
 
 	if (currentLayer >= 0 && currentLayer < ui->listWidgetLayers->count()) {
 		delete ui->listWidgetLayers->takeItem(currentLayer);
@@ -395,7 +391,9 @@ void ImageViewer::on_pushButtonSetColor_clicked()
 		QString style_sheet = QString("background-color: #%1;").arg(newColor.rgba(), 0, 16);
 		ui->pushButtonSetColor->setStyleSheet(style_sheet);
 		globalColor = newColor;
-		vW->changeObjectColor(currentLayer, globalColor);
+
+		if(ui->radioButtonMove->isChecked())
+			vW->changeObjectColor(currentLayer, globalColor);
 	}
 }
 void ImageViewer::on_pushButtonSetColorA_clicked()
@@ -404,7 +402,9 @@ void ImageViewer::on_pushButtonSetColorA_clicked()
 	if (newColor.isValid()) {
 		QString style_sheet = QString("background-color: #%1;").arg(newColor.rgba(), 0, 16);
 		ui->pushButtonSetColorA->setStyleSheet(style_sheet);
-		triangleColor[0] = newColor;
+
+		if (ui->radioButtonMove->isChecked())
+			triangleColor[0] = newColor;
 	}
 }
 void ImageViewer::on_pushButtonSetColorB_clicked()
@@ -413,7 +413,9 @@ void ImageViewer::on_pushButtonSetColorB_clicked()
 	if (newColor.isValid()) {
 		QString style_sheet = QString("background-color: #%1;").arg(newColor.rgba(), 0, 16);
 		ui->pushButtonSetColorB->setStyleSheet(style_sheet);
-		triangleColor[1] = newColor;
+
+		if (ui->radioButtonMove->isChecked())
+			triangleColor[1] = newColor;
 	}
 }
 void ImageViewer::on_pushButtonSetColorC_clicked()
@@ -422,7 +424,9 @@ void ImageViewer::on_pushButtonSetColorC_clicked()
 	if (newColor.isValid()) {
 		QString style_sheet = QString("background-color: #%1;").arg(newColor.rgba(), 0, 16);
 		ui->pushButtonSetColorC->setStyleSheet(style_sheet);
-		triangleColor[2] = newColor;
+		
+		if (ui->radioButtonMove->isChecked())
+			triangleColor[2] = newColor;
 	}
 }
 
@@ -430,8 +434,6 @@ void ImageViewer::on_pushButtonClear_clicked()
 {
 	if (ui->listWidgetLayers->count() <= 0)
 		return;
-
-	vW->setMoveActive(false);
 
 	vW->removeObject(currentLayer);
 	if (currentLayer >= 0 && currentLayer < ui->listWidgetLayers->count()) {
@@ -461,7 +463,7 @@ void ImageViewer::initializeButtonGroup()
 	connect(ui->comboBoxShowAddons, &QComboBox::currentIndexChanged, [this]() {
 		if (ui->toolButtonDrawCurved->isChecked()) {
 			vW->clear();
-			vW->drawCurve(vW->getObjectPoints(currentLayer), globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
+			vW->drawCurve(currentLayer, vW->getObjectPoints(currentLayer), globalColor, ui->comboBoxCurvedType->currentIndex(), ui->comboBoxShowAddons->currentIndex());
 		}
 	});
 	connect(ui->toolBox, &QToolBox::currentChanged, [this](int index) {
@@ -755,4 +757,8 @@ void ImageViewer::updateList(QString item) {
 	currentLayer = ui->listWidgetLayers->count();
 	ui->listWidgetLayers->addItem(item);
 	ui->listWidgetLayers->setCurrentRow(currentLayer);
+}
+
+void ImageViewer::on_radioButtonMove_toggled(bool checked) {
+	vW->setMoveActive(checked);
 }

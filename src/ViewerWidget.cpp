@@ -245,7 +245,7 @@ void ViewerWidget::drawList(int algtype) {
 			drawPolygon(o.points, o.color, o.fill, o.triangleColors, algtype, o.fillType);
 			break;
 		case curved:
-			drawCurve(o.points, o.color, o.curvedType);
+			drawCurve(o.layer, o.points, o.color, o.curvedType);
 			break;
 		case rectangle:
 			drawPolygon(o.points, o.color, o.fill);
@@ -868,12 +868,12 @@ QColor ViewerWidget::barycentric(int x, int y, QVector<QPoint> T, QColor triangl
 	return QColor(r, g, b);
 }
 
-void ViewerWidget::drawCurve(QVector<QPoint> points, QColor color, int type, int show) {
+void ViewerWidget::drawCurve(int layer, QVector<QPoint> points, QColor color, int type, int show) {
 	enum types { hermit, bezier, coons };
 	
 	switch (type){
 	case hermit:
-		drawHermitCubic(points, color, show);
+		drawHermitCubic(layer, points, color, show);
 		break;
 	case bezier:
 		drawCasteljauAlg(points, color, show);
@@ -883,7 +883,7 @@ void ViewerWidget::drawCurve(QVector<QPoint> points, QColor color, int type, int
 		break;
 	}
 }
-void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color, int show) {
+void ViewerWidget::drawHermitCubic(int layer, QVector<QPoint> points, QColor color, int show) {
 	enum addons { lines_points, lines, point, none };
 	double dt = 0.05;
 
@@ -892,6 +892,7 @@ void ViewerWidget::drawHermitCubic(QVector<QPoint> points, QColor color, int sho
 			QPoint temp(points[i].x(), points[i].y() - 100);
 			points.insert(i + 1, temp);
 		}
+		list[layer].points = points;
 	}
 
 	for (qsizetype i = 0; i < points.size(); i += 2) {

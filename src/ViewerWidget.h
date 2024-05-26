@@ -5,8 +5,15 @@
 
 enum types { line, circle, polygon, curved, rectangle };
 struct object {
-	object(QVector<QPoint> obj, QColor color, int layer, int type, bool fill)
-		:points(obj), color(color), layer(layer), type(type), fill(fill) {};
+	object(QVector<QPoint> obj, QColor color, int layer, int type)
+		:points(obj), color(color), layer(layer), type(type) {};
+	object(QVector<QPoint> obj, QColor color, int layer, int type, bool fill, QColor TC[3], int fillType)
+		:points(obj), color(color), layer(layer), type(type), fill(fill), fillType(fillType) {
+		triangleColors[0] = TC[0]; triangleColors[1] = TC[1]; triangleColors[2] = TC[2];
+	};
+	object(QVector<QPoint> obj, QColor color, int layer, int type, int curvedType)
+		:points(obj), color(color), layer(layer), type(type), curvedType(curvedType) {};
+
 	QVector<QPoint> points;
 	QColor color;
 	QColor triangleColors[3];
@@ -82,8 +89,14 @@ public:
 	void clear();
 
 	//my get/set functions
-	void pushBackObject(QVector<QPoint> obj, QColor color, int layer, int type, bool fill) {
-		list.push_back(object(obj, color, layer, type, fill));
+	void pushBackObject(QVector<QPoint> obj, QColor color, int layer, int type) {
+		list.push_back(object(obj, color, layer, type));
+	}
+	void pushBackObject(QVector<QPoint> obj, QColor color, int layer, int type, bool fill, QColor TC[3], int fillType) {
+		list.push_back(object(obj, color, layer, type, fill, TC, fillType));
+	}
+	void pushBackObject(QVector<QPoint> obj, QColor color, int layer, int type, int curvedType) {
+		list.push_back(object(obj, color, layer, type, curvedType));
 	}
 	void removeObject(int layer) { 
 		list.removeAt(layer); 
@@ -145,8 +158,8 @@ public:
 	QColor nearestNeighbor(int x, int y, QVector<QPoint> T, QColor triangleColor[3]);
 	QColor barycentric(int x, int y, QVector<QPoint> T, QColor triangleColor[3]);
 
-	void drawCurve(QVector<QPoint> points, QColor color, int type = 0, int show = 0);
-	void drawHermitCubic(QVector<QPoint> points, QColor color, int show);
+	void drawCurve(int layer, QVector<QPoint> points, QColor color, int type = 0, int show = 0);
+	void drawHermitCubic(int layer, QVector<QPoint> points, QColor color, int show);
 	void drawCasteljauAlg(QVector<QPoint> points, QColor color, int show);
 	void drawCoonsCubic(QVector<QPoint> points, QColor color, int show);
 #pragma endregion
