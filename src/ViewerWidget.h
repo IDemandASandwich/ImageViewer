@@ -78,6 +78,7 @@ public:
 	bool isInside(QPoint p) { return (p.x() > 0 && p.y() > 0 && p.x() < img->width() && p.y() < img->height()) ? true : false; }
 
 	//Draw functions
+	void drawLine(int layer, QPoint start, QPoint end, QColor color, int algType = 0, bool crop = true, bool showpoints = false);
 	void drawLine(QPoint start, QPoint end, QColor color, int algType = 0, bool crop = true, bool showpoints = false);
 	void setDrawLineBegin(QPoint begin) { drawLineBegin = begin; }
 	QPoint getDrawLineBegin() { return drawLineBegin; }
@@ -140,12 +141,15 @@ public:
 	int getClosestPointIndex(int layer, QPoint P);
 
 	//My functions
+	void DDA(int layer, QPoint start, QPoint end, QColor color);
 	void DDA(QPoint start, QPoint end, QColor color);
+	void Bresenham(int layer, QPoint start, QPoint end, QColor color);
 	void Bresenham(QPoint start, QPoint end, QColor color);
-	void drawCircle(QPoint center, QPoint end, QColor color);
-	void drawCircle(QPoint center, int r, QColor color);
-	void drawPolygon(QVector<QPoint> points, QColor color, bool fill, QColor triangleColor[3] = {0}, int algtype = 0, int triangleFillType = 0);
-	void drawList(int algtype = 0);
+	void drawCircle(int layer, QPoint center, QPoint end, QColor color);
+	void drawCircle(int layer, QPoint center, int r, QColor color);
+	void drawPolygon(int layer, QVector<QPoint> points, QColor color, bool fill, QColor triangleColor[3] = {0}, int algtype = 0, int triangleFillType = 0);
+	void drawList();
+	void drawObject(object& o);
 
 	void drawPolygonWireframe(QVector<QPoint> points, QColor color);
 
@@ -157,22 +161,22 @@ public:
 	QVector<QPoint> cropCB(QPoint start, QPoint end);
 	QVector<QPoint> cropSH(QVector<QPoint> V);
 
-	void showPoints(QVector<QPoint> obj, QColor color = Qt::red);
+	void showPoints(int layer, QVector<QPoint> obj, QColor color = Qt::red);
 
-	void scanLine(QVector<QPoint> obj,QColor color);
-	void fillTriangle(QVector<QPoint> obj, QColor color, int fillType, QColor triangleColor[3]);
-	void fillTriangleUp(QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]);
-	void fillTriangleDown(QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]);
-	void fillTriangleUp(QVector<QPoint> T, QPoint P,QColor color, int fillType, QColor triangleColor[3]);
-	void fillTriangleDown(QVector<QPoint> T, QPoint P, QColor color, int fillType, QColor triangleColor[3]);
+	void scanLine(int layer, QVector<QPoint> obj,QColor color);
+	void fillTriangle(int layer, QVector<QPoint> obj, QColor color, int fillType, QColor triangleColor[3]);
+	void fillTriangleUp(int layer, QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]);
+	void fillTriangleDown(int layer, QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]);
+	void fillTriangleUp(int layer, QVector<QPoint> T, QPoint P,QColor color, int fillType, QColor triangleColor[3]);
+	void fillTriangleDown(int layer, QVector<QPoint> T, QPoint P, QColor color, int fillType, QColor triangleColor[3]);
 
 	QColor nearestNeighbor(int x, int y, QVector<QPoint> T, QColor triangleColor[3]);
 	QColor barycentric(int x, int y, QVector<QPoint> T, QColor triangleColor[3]);
 
 	void drawCurve(int layer, QVector<QPoint> points, QColor color, int type = 0, int show = 0);
 	void drawHermitCubic(int layer, QVector<QPoint> points, QColor color, int show);
-	void drawCasteljauAlg(QVector<QPoint> points, QColor color, int show);
-	void drawCoonsCubic(QVector<QPoint> points, QColor color, int show);
+	void drawCasteljauAlg(int layer, QVector<QPoint> points, QColor color, int show);
+	void drawCoonsCubic(int layer, QVector<QPoint> points, QColor color, int show);
 #pragma endregion
 #pragma region 3D
 	

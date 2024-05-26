@@ -12,6 +12,7 @@ ViewerWidget::ViewerWidget(QSize imgSize, QWidget* parent)
 		setPainter();
 		setDataPtr();
 	}
+
 }
 ViewerWidget::~ViewerWidget()
 {
@@ -119,7 +120,7 @@ void ViewerWidget::setPixel(int x, int y, const QColor& color)
 }
 
 //Draw functions
-void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType, bool crop, bool showpoints)
+void ViewerWidget::drawLine(int layer, QPoint start, QPoint end, QColor color, int algType, bool crop, bool showpoints)
 {
 	if (crop) {
 		QVector<QPoint> cropped = cropCB(start, end);
@@ -136,7 +137,32 @@ void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType,
 	}
 
 	if (showpoints) {
-		showPoints(QVector<QPoint>({ start, end }));
+		showPoints(layer, QVector<QPoint>({ start, end }));
+	}
+
+	switch (algType) {
+	case 0:
+		DDA(layer, start, end, color);
+		break;
+	case 1:
+		Bresenham(layer, start, end, color);
+		break;
+	}
+}
+void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType, bool crop, bool showpoints)
+{
+	if (crop) {
+		QVector<QPoint> cropped = cropCB(start, end);
+
+		if (cropped.isEmpty() == false) {
+			if (cropped.at(0) == QPoint(-1, -1)) {
+				return;
+			}
+			else {
+				start = cropped.at(0);
+				end = cropped.at(1);
+			}
+		}
 	}
 
 	switch (algType) {
@@ -148,7 +174,8 @@ void ViewerWidget::drawLine(QPoint start, QPoint end, QColor color, int algType,
 		break;
 	}
 }
-void ViewerWidget::drawCircle(QPoint center, QPoint end, QColor color) {
+
+void ViewerWidget::drawCircle(int layer, QPoint center, QPoint end, QColor color) {
 	int x1 = center.x();
 	int y1 = center.y();
 	int x2 = end.x();
@@ -163,14 +190,46 @@ void ViewerWidget::drawCircle(QPoint center, QPoint end, QColor color) {
 	int dvaY = 2 * r - 2;
 
 	while (x <= y) {
-		if (isInside(x1 + x, y1 + y))	setPixel(x1 + x, y1 + y, color);
-		if (isInside(x1 + x, y1 - y))	setPixel(x1 + x, y1 - y, color);
-		if (isInside(x1 - x, y1 + y))	setPixel(x1 - x, y1 + y, color);
-		if (isInside(x1 - x, y1 - y))	setPixel(x1 - x, y1 - y, color);
-		if (isInside(x1 + y, y1 + x))	setPixel(x1 + y, y1 + x, color);
-		if (isInside(x1 + y, y1 - x))	setPixel(x1 + y, y1 - x, color);
-		if (isInside(x1 - y, y1 + x))	setPixel(x1 - y, y1 + x, color);
-		if (isInside(x1 - y, y1 - x))	setPixel(x1 - y, y1 - x, color);
+		if (isInside(x1 + x, y1 + y))	
+			if (layer > L[x][y]) {
+				C[x][y] = color;
+				L[x][y] = layer;
+			}
+		if (isInside(x1 + x, y1 - y))	
+			if (layer > L[x][y]) {
+				C[x][y] = color;
+				L[x][y] = layer;
+			}
+		if (isInside(x1 - x, y1 + y))	
+			if (layer > L[x][y]) {
+				C[x][y] = color;
+				L[x][y] = layer;
+			}
+		if (isInside(x1 - x, y1 - y))	
+			if (layer > L[x][y]) {
+				C[x][y] = color;
+				L[x][y] = layer;
+			}
+		if (isInside(x1 + y, y1 + x))	
+			if (layer > L[x][y]) {
+				C[x][y] = color;
+				L[x][y] = layer;
+			}
+		if (isInside(x1 + y, y1 - x))	
+			if (layer > L[x][y]) {
+				C[x][y] = color;
+				L[x][y] = layer;
+			}
+		if (isInside(x1 - y, y1 + x))	
+			if (layer > L[x][y]) {
+				C[x][y] = color;
+				L[x][y] = layer;
+			}
+		if (isInside(x1 - y, y1 - x))	
+			if (layer > L[x][y]) {
+				C[x][y] = color;
+				L[x][y] = layer;
+			}
 
 		if (p > 0) {
 			p -= dvaY;
@@ -184,10 +243,10 @@ void ViewerWidget::drawCircle(QPoint center, QPoint end, QColor color) {
 
 	update();
 }
-void ViewerWidget::drawCircle(QPoint center, int r, QColor color) {
-	drawCircle(center, QPoint(center.x() + r, center.y()), color);
+void ViewerWidget::drawCircle(int layer, QPoint center, int r, QColor color) {
+	drawCircle(layer, center, QPoint(center.x() + r, center.y()), color);
 }
-void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, bool fill, QColor triangleColor[3], int algtype, int triangleFillType)
+void ViewerWidget::drawPolygon(int layer, QVector<QPoint> points, QColor color, bool fill, QColor triangleColor[3], int algtype, int triangleFillType)
 {
 	QVector<QPoint> cropped = cropSH(points);
 
@@ -202,15 +261,15 @@ void ViewerWidget::drawPolygon(QVector<QPoint> points, QColor color, bool fill, 
 
 	if(fill){
 		if (points.size() > 3) {
-			scanLine(points, color);
+			scanLine(layer, points, color);
 		}
 		else if (points.size() == 3) {
-			fillTriangle(points, color, triangleFillType, triangleColor);
+			fillTriangle(layer, points, color, triangleFillType, triangleColor);
 		}
 	}
 
 	for (int i = 0; i < points.size(); i++) {
-		drawLine(points[i], points[(i + 1) % points.size()], color, algtype, false, false);
+		drawLine(layer, points[i], points[(i + 1) % points.size()], color, algtype, false, false);
 	}
 }
 void ViewerWidget::drawPolygonWireframe(QVector<QPoint> points, QColor color)
@@ -230,35 +289,107 @@ void ViewerWidget::drawPolygonWireframe(QVector<QPoint> points, QColor color)
 		drawLine(points[i], points[(i + 1) % points.size()], color, 0, false, false);
 	}
 }
-void ViewerWidget::drawList(int algtype) {
+void ViewerWidget::drawList() {
 	clear();
 
-	for (object o : list) {
-		switch (o.type) {
-		case line:
-			drawLine(o.points.at(0), o.points.at(1), o.color, algtype);
+	L = QVector<QVector<int>>(width(), QVector<int>(height(), -1));
+	C = QVector<QVector<QColor>>(width(), QVector<QColor>(height(), Qt::white));
+
+	for (object& o : list) {
+		switch(o.type) {
+		case types::line:
+			drawLine(o.layer, o.points[0], o.points[1], o.color);
 			break;
-		case circle:
-			drawCircle(o.points.at(0), o.points.at(1), o.color);
+		case types::circle:
+			drawCircle(o.layer, o.points[0], o.points[1], o.color);
 			break;
-		case polygon:
-			drawPolygon(o.points, o.color, o.fill, o.triangleColors, algtype, o.fillType);
+		case types::polygon:
+			drawPolygon(o.layer, o.points, o.color, o.fill, o.triangleColors, 0, o.fillType);
 			break;
-		case curved:
-			drawCurve(o.layer, o.points, o.color, o.curvedType);
+		case types::curved:
+			drawCurve(o.layer, o.points, o.color, o.curvedType, 0);
 			break;
-		case rectangle:
-			drawPolygon(o.points, o.color, o.fill);
-			break;
-		default:
+		case types::rectangle:
+			drawPolygon(o.layer, o.points, o.color, o.fill);
 			break;
 		}
 	}
+
+	for (int i = 0; i < width(); i++) {
+		for (int j = 0; j < height(); j++) {
+			if (L[i][j] > -1) {
+				setPixel(i, j, C[i][j]);
+			}
+		}
+	}
+
+	update();
+}
+void ViewerWidget::drawObject(object& o) {
+	clear();
+	int layer = o.layer;
+
+	for (int i = 0; i < width(); i++) {
+		for (int j = 0; j < height(); j++) {
+			if (L[i][j] == layer) {
+				L[i][j] = -1;
+				C[i][j] = Qt::white;
+			}
+		}
+	}
+
+	switch (o.type) {
+	case types::line:
+		drawLine(layer, o.points[0], o.points[1], o.color);
+		break;
+	case types::circle:
+		drawCircle(layer, o.points[0], o.points[1], o.color);
+		break;
+	case types::polygon:
+		drawPolygon(layer, o.points, o.color, o.fill, o.triangleColors, 0, o.fillType);
+		break;
+	case types::curved:
+		drawCurve(layer, o.points, o.color, o.curvedType, 0);
+		break;
+	case types::rectangle:
+		drawPolygon(layer, o.points, o.color, o.fill);
+		break;
+	}
+
+	for (int i = layer - 1; i >= 0; i--) {
+		object& o2 = list[i];
+
+		switch (o2.type) {
+		case types::line:
+			drawLine(o2.layer, o2.points[0], o2.points[1], o2.color);
+			break;
+		case types::circle:
+			drawCircle(o2.layer, o2.points[0], o2.points[1], o2.color);
+			break;
+		case types::polygon:
+			drawPolygon(o2.layer, o2.points, o2.color, o2.fill, o2.triangleColors, 0, o2.fillType);
+			break;
+		case types::curved:
+			drawCurve(o2.layer, o2.points, o2.color, o2.curvedType, 0);
+			break;
+		case types::rectangle:
+			drawPolygon(o2.layer, o2.points, o2.color, o2.fill);
+			break;
+		}
+	}
+
+	for (int i = 0; i < width(); i++) {
+		for (int j = 0; j < height(); j++) {
+			setPixel(i, j, C[i][j]);
+		}
+	}
+
+	update();
 }
 
-void ViewerWidget::showPoints(QVector<QPoint> obj, QColor color) {
+void ViewerWidget::showPoints(int layer, QVector<QPoint> obj, QColor color) {
 	for (const QPoint p : obj) {
-		drawCircle(p, 3, color);
+		drawCircle(layer, p, 3, color);
 	}
 }
 int ViewerWidget::getClosestPointIndex(int layer, QPoint P) {
@@ -301,6 +432,47 @@ void ViewerWidget::paintEvent(QPaintEvent* event)
 }
 
 //My functions
+void ViewerWidget::DDA(int layer, QPoint start, QPoint end, QColor color) {
+	int x1 = start.x();
+	int y1 = start.y();
+	int x2 = end.x();
+	int y2 = end.y();
+
+	double m = static_cast<double>(y2 - y1) / static_cast<double>(x2 - x1);
+
+	if (abs(m) <= 1) {
+		if (x1 > x2) {
+			std::swap(x1, x2);
+			std::swap(y1, y2);
+		}
+
+		double y = y1;
+		for (int x = x1; x <= x2; x++) {
+			if (layer > L[x][y]) {
+				C[x][y] = color;
+				L[x][y] = layer;
+			}
+			y += m;
+		}
+	}
+	else {
+		if (y1 > y2) {
+			std::swap(x1, x2);
+			std::swap(y1, y2);
+		}
+
+		double x = x1;
+		for (int y = y1; y <= y2; y++) {
+			if (layer > L[x][y]) {
+				C[x][y] = color;
+				L[x][y] = layer;
+			}
+			x += 1 / m;
+		}
+	}
+
+	update();
+}
 void ViewerWidget::DDA(QPoint start, QPoint end, QColor color) {
 	int x1 = start.x();
 	int y1 = start.y();
@@ -317,7 +489,7 @@ void ViewerWidget::DDA(QPoint start, QPoint end, QColor color) {
 
 		double y = y1;
 		for (int x = x1; x <= x2; x++) {
-			setPixel(x, static_cast<int>(y), color);
+			setPixel(x, y, color);
 			y += m;
 		}
 	}
@@ -329,8 +501,122 @@ void ViewerWidget::DDA(QPoint start, QPoint end, QColor color) {
 
 		double x = x1;
 		for (int y = y1; y <= y2; y++) {
-			setPixel(static_cast<int>(x), y, color);
+			setPixel(x, y, color);
 			x += 1 / m;
+		}
+	}
+
+	update();
+}
+
+void ViewerWidget::Bresenham(int layer, QPoint start, QPoint end, QColor color) {
+	int x1 = start.x();
+	int y1 = start.y();
+	int x2 = end.x();
+	int y2 = end.y();
+
+	double m = static_cast<double>(y2 - y1) / static_cast<double>(x2 - x1);
+
+	if (abs(m) <= 1) {
+		if (x1 > x2) {
+			std::swap(x1, x2);
+			std::swap(y1, y2);
+		}
+
+		int dx = x2 - x1;
+		int dy = y2 - y1;
+		int k1 = 2 * dy;
+		int x = x1;
+		int y = y1;
+
+		if (m > 0 && m < 1) {
+			int k2 = 2 * (dy - dx);
+			int p = 2 * dy - dx;
+			
+			while (x <= x2) {
+				if (layer > L[x][y]) {
+					C[x][y] = color;
+					L[x][y] = layer;
+				}
+				x++;
+				if (p > 0) {
+					y++;
+					p += k2;
+				}
+				else {
+					p += k1;
+				}
+			}
+		}
+		else {
+			int k2 = 2 * (dy + dx);
+			int p = 2 * dy + dx;
+
+			while (x <= x2) {
+				if (layer > L[x][y]) {
+					C[x][y] = color;
+					L[x][y] = layer;
+				}
+				x++;
+				if (p < 0) {
+					y--;
+					p += k2;
+				}
+				else {
+					p += k1;
+				}
+			}
+		}
+	}
+	else {
+		if (y1 > y2) {
+			std::swap(x1, x2);
+			std::swap(y1, y2);
+		}
+
+		int dx = x2 - x1;
+		int dy = y2 - y1;
+		int k1 = 2 * dx;
+		int x = x1;
+		int y = y1;
+
+		if (m > 1) {
+			int k2 = 2 * (dx - dy);
+			int p = 2 * dx - dy;
+
+			while (y <= y2) {
+				if (layer > L[x][y]) {
+					C[x][y] = color;
+					L[x][y] = layer;
+				}
+				y++;
+				if (p > 0) {
+					x++;
+					p += k2;
+				}
+				else {
+					p += k1;
+				}
+			}
+		}
+		else {
+			int k2 = 2 * (dx + dy);
+			int p = 2 * dx + dy;
+
+			while (y <= y2) {
+				if (layer > L[x][y]) {
+					C[x][y] = color;
+					L[x][y] = layer;
+				}
+				y++;
+				if (p < 0) {
+					x--;
+					p += k2;
+				}
+				else {
+					p += k1;
+				}
+			}
 		}
 	}
 
@@ -359,9 +645,10 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 		if (m > 0 && m < 1) {
 			int k2 = 2 * (dy - dx);
 			int p = 2 * dy - dx;
-			
+
 			while (x <= x2) {
 				setPixel(x, y, color);
+
 				x++;
 				if (p > 0) {
 					y++;
@@ -378,6 +665,7 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 
 			while (x <= x2) {
 				setPixel(x, y, color);
+
 				x++;
 				if (p < 0) {
 					y--;
@@ -407,6 +695,7 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 
 			while (y <= y2) {
 				setPixel(x, y, color);
+
 				y++;
 				if (p > 0) {
 					x++;
@@ -423,6 +712,7 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 
 			while (y <= y2) {
 				setPixel(x, y, color);
+
 				y++;
 				if (p < 0) {
 					x--;
@@ -437,6 +727,7 @@ void ViewerWidget::Bresenham(QPoint start, QPoint end, QColor color) {
 
 	update();
 }
+
 
 void ViewerWidget::rotateObject(int layer, int degrees, int type, QColor color, QColor triangleColor[3], int algtype, int triangleFillType) {
 	double theta = ((double)degrees / (double)180) * M_PI;
@@ -608,7 +899,7 @@ QVector<QPoint> ViewerWidget::cropSH(QVector<QPoint> V) {
 	return Vtemp;
 }
 
-void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
+void ViewerWidget::scanLine(int layer, QVector<QPoint> obj, QColor color) {
 	struct edge{
 		QPoint start;
 		QPoint end;
@@ -675,7 +966,7 @@ void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
 
 		for (qsizetype j = 0; j < ZAH.size() - 1; j++) {
 			if (ZAH.at(j).x != ZAH.at(j + 1).x) {
-				drawLine(QPoint(static_cast<int>(round(ZAH.at(j).x)), y), QPoint(static_cast<int>(round(ZAH.at(j + 1).x)), y), color, 0);
+				drawLine(layer, QPoint(static_cast<int>(round(ZAH.at(j).x)), y), QPoint(static_cast<int>(round(ZAH.at(j + 1).x)), y), color, 0);
 			}
 		}
 
@@ -693,7 +984,7 @@ void ViewerWidget::scanLine(QVector<QPoint> obj, QColor color) {
 		y++;
 	}
 }
-void ViewerWidget::fillTriangle(QVector<QPoint> obj, QColor color, int fillType, QColor triangleColor[3]) {
+void ViewerWidget::fillTriangle(int layer, QVector<QPoint> obj, QColor color, int fillType, QColor triangleColor[3]) {
 	QVector<QPoint> T = obj;
 
 	std::sort(T.begin(), T.end(), [](const QPoint& a, const QPoint& b) {
@@ -704,21 +995,21 @@ void ViewerWidget::fillTriangle(QVector<QPoint> obj, QColor color, int fillType,
 	});
 
 	if (T.at(0).y() == T.at(1).y()) {
-		fillTriangleDown(T, color, fillType, triangleColor);
+		fillTriangleDown(layer, T, color, fillType, triangleColor);
 	}
 	else if (T.at(1).y() == T.at(2).y()) {
-		fillTriangleUp(T, color, fillType, triangleColor);
+		fillTriangleUp(layer, T, color, fillType, triangleColor);
 	}
 	else {
 		double m = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
 
 		QPoint P(((T.at(1).y() - T.at(0).y()) / m) + T.at(0).x(), T.at(1).y());
 
-		fillTriangleDown(T, P, color, fillType, triangleColor);
-		fillTriangleUp(T, P, color, fillType, triangleColor);
+		fillTriangleDown(layer, T, P, color, fillType, triangleColor);
+		fillTriangleUp(layer, T, P, color, fillType, triangleColor);
 	}
 }
-void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]) {
+void ViewerWidget::fillTriangleUp(int layer, QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]) {
 
 	double m1 = static_cast<double>(T.at(1).y() - T.at(0).y()) / static_cast<double>(T.at(1).x() - T.at(0).x());
 	double m2 = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
@@ -738,14 +1029,18 @@ void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QColor color, int fillType,
 					color = barycentric(x, y, T, triangleColor);
 				}
 
-				setPixel(static_cast<int>(x), y, color);
+				int xi = static_cast<int>(x);
+				if (layer > L[xi][y]) {
+					C[xi][y] = color;
+					L[xi][y] = layer;
+				}
 			}
 		}
 		x1 += 1./m1;
 		x2 += 1./m2;
 	}
 }
-void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]) {
+void ViewerWidget::fillTriangleDown(int layer, QVector<QPoint> T, QColor color, int fillType, QColor triangleColor[3]) {
 	double m1 = static_cast<double>(T.at(2).y() - T.at(0).y()) / static_cast<double>(T.at(2).x() - T.at(0).x());
 	double m2 = static_cast<double>(T.at(2).y() - T.at(1).y()) / static_cast<double>(T.at(2).x() - T.at(1).x());
 
@@ -764,14 +1059,18 @@ void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QColor color, int fillTyp
 					color = barycentric(x, y, T, triangleColor);
 				}
 
-				setPixel(static_cast<int>(x), y, color);
+				int xi = static_cast<int>(x);
+				if (layer > L[xi][y]) {
+					C[xi][y] = color;
+					L[xi][y] = layer;
+				}
 			}
 		}
 		x1 += 1. / m1;
 		x2 += 1. / m2;
 	}
 }
-void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QPoint P, QColor color, int fillType, QColor triangleColor[3]) {
+void ViewerWidget::fillTriangleUp(int layer, QVector<QPoint> T, QPoint P, QColor color, int fillType, QColor triangleColor[3]) {
 	QVector<QPoint> Tt = T;
 	if (Tt.at(1).x() < P.x()) {
 		//T(T0,T1,T2) -> T(T0,T1,P)
@@ -801,14 +1100,18 @@ void ViewerWidget::fillTriangleUp(QVector<QPoint> T, QPoint P, QColor color, int
 					color = barycentric(x, y, T, triangleColor);
 				}
 
-				setPixel(static_cast<int>(x), y, color);
+				int xi = static_cast<int>(x);
+				if (layer > L[xi][y]) {
+					C[xi][y] = color;
+					L[xi][y] = layer;
+				}
 			}
 		}
 		x1 += 1. / m1;
 		x2 += 1. / m2;
 	}
 }
-void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QPoint P, QColor color, int fillType, QColor triangleColor[3]) {
+void ViewerWidget::fillTriangleDown(int layer, QVector<QPoint> T, QPoint P, QColor color, int fillType, QColor triangleColor[3]) {
 	QVector<QPoint> Tt = T;
 	if (Tt.at(1).x() < P.x()) {
 		//T(T0,T1,T2) -> T(T1,P,T2)
@@ -838,7 +1141,11 @@ void ViewerWidget::fillTriangleDown(QVector<QPoint> T, QPoint P, QColor color, i
 					color = barycentric(x, y, T, triangleColor);
 				}
 
-				setPixel(static_cast<int>(x), y, color);
+				int xi = static_cast<int>(x);
+				if (layer > L[xi][y]) {
+					C[xi][y] = color;
+					L[xi][y] = layer;
+				}
 			}
 		}
 		x1 += 1. / m1;
@@ -884,10 +1191,10 @@ void ViewerWidget::drawCurve(int layer, QVector<QPoint> points, QColor color, in
 		drawHermitCubic(layer, points, color, show);
 		break;
 	case bezier:
-		drawCasteljauAlg(points, color, show);
+		drawCasteljauAlg(layer, points, color, show);
 		break;
 	case coons:
-		drawCoonsCubic(points, color, show);
+		drawCoonsCubic(layer, points, color, show);
 		break;
 	}
 }
@@ -910,7 +1217,7 @@ void ViewerWidget::drawHermitCubic(int layer, QVector<QPoint> points, QColor col
 		if (show == lines || show == lines_points)
 			col = Qt::red;
 
-		drawLine(points[i], points[i + 1], col, 0, true, show_points);
+		drawLine(layer, points[i], points[i + 1], col, 0, true, show_points);
 	}
 
 	for (qsizetype i = 2; i < points.size(); i += 2) {
@@ -929,15 +1236,15 @@ void ViewerWidget::drawHermitCubic(int layer, QVector<QPoint> points, QColor col
 			QPoint T1 = P1 - points[i + 1];
 
 			QPoint Q1(P0 * F0 + P1 * F1 + T0 * F2 + T1 * F3);
-			drawLine(Q0, Q1, color);
+			drawLine(layer, Q0, Q1, color);
 			Q0 = Q1;
 			t += dt;
 		}
 
-		drawLine(Q0, points[i], color);
+		drawLine(layer, Q0, points[i], color);
 	}
 }
-void ViewerWidget::drawCasteljauAlg(QVector<QPoint> points, QColor color, int show) {
+void ViewerWidget::drawCasteljauAlg(int layer, QVector<QPoint> points, QColor color, int show) {
 	enum addons { lines_points, lines, point, none };
 
 	qsizetype n = points.size();
@@ -960,17 +1267,17 @@ void ViewerWidget::drawCasteljauAlg(QVector<QPoint> points, QColor color, int sh
 		}
 		
 		Q1 = P[n - 1][0];
-		drawLine(Q0, Q1, color);
+		drawLine(layer, Q0, Q1, color);
 		Q0 = Q1;
 		t += dt;
 	}
 
 	if(show != none)
-		showPoints(points);
+		showPoints(layer, points);
 
-	drawLine(Q0, points[n - 1], color);
+	drawLine(layer, Q0, points[n - 1], color);
 }
-void ViewerWidget::drawCoonsCubic(QVector<QPoint> points, QColor color, int show) {
+void ViewerWidget::drawCoonsCubic(int layer, QVector<QPoint> points, QColor color, int show) {
 	enum addons { lines_points, lines, point, none };
 	double dt = 0.05;
 	double t = 0;
@@ -989,13 +1296,13 @@ void ViewerWidget::drawCoonsCubic(QVector<QPoint> points, QColor color, int show
 		while (t < 1) {
 			t += dt;
 			Q1 = points[i - 3] * B0(t) + points[i - 2] * B1(t) + points[i - 1] * B2(t) + points[i] * B3(t);
-			drawLine(Q0, Q1, color);
+			drawLine(layer, Q0, Q1, color);
 			Q0 = Q1;
 		}
 	}
 
 	if (show != none)
-		showPoints(points);
+		showPoints(layer, points);
 }
 
 #pragma endregion
