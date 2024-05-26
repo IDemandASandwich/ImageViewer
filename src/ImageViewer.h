@@ -30,6 +30,7 @@ private:
 	int currentPointIndex;
 	int currentLayer;
 	QVector<QPoint> temp;
+	bool programmaticChange;
 
 #pragma endregion
 
@@ -52,6 +53,9 @@ private:
 	bool openImage(QString filename);
 	bool saveImage(QString filename);
 
+	bool saveState(QString filename);
+	bool loadState(QString filename);
+
 	//My functions
 	void initializeButtonGroup();
 	void updateList(QString item);
@@ -61,6 +65,9 @@ private slots:
 	void on_actionSave_as_triggered();
 	void on_actionClear_triggered();
 	void on_actionExit_triggered();
+
+	void on_pushButtonSaveState_clicked();
+	void on_pushButtonLoadState_clicked();
 
 	//Tools slots
 	void on_pushButtonSetColor_clicked();
@@ -85,4 +92,5 @@ private slots:
 
 	void on_listWidgetLayers_itemClicked(QListWidgetItem* item);
 	void on_radioButtonMove_toggled(bool checked);
+	void on_spinBoxLayer_valueChanged(int value);
 };

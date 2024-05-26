@@ -6,13 +6,13 @@
 enum types { line, circle, polygon, curved, rectangle };
 struct object {
 	object(QVector<QPoint> obj, QColor color, int layer, int type)
-		:points(obj), color(color), layer(layer), type(type) {};
+		:points(obj), color(color), layer(layer), type(type), curvedType(0), fill(false), fillType(0) {};
 	object(QVector<QPoint> obj, QColor color, int layer, int type, bool fill, QColor TC[3], int fillType)
-		:points(obj), color(color), layer(layer), type(type), fill(fill), fillType(fillType) {
+		:points(obj), color(color), layer(layer), type(type), fill(fill), fillType(fillType), curvedType(0) {
 		triangleColors[0] = TC[0]; triangleColors[1] = TC[1]; triangleColors[2] = TC[2];
 	};
 	object(QVector<QPoint> obj, QColor color, int layer, int type, int curvedType)
-		:points(obj), color(color), layer(layer), type(type), curvedType(curvedType) {};
+		:points(obj), color(color), layer(layer), type(type), curvedType(curvedType), fill(false), fillType(0) {};
 
 	QVector<QPoint> points;
 	QColor color;
@@ -39,9 +39,11 @@ private:
 	bool moving = false;
 	bool showpoints = true;	//TODO: add on/off switch
 
-	//My vars
 	QPoint origin;
 	QVector<object> list;
+
+	QVector<QVector<int>> L;
+	QVector<QVector<QColor>> C;
 
 #pragma endregion
 #pragma region 3D
@@ -109,6 +111,7 @@ public:
 	void clearList() { list.clear(); }
 	QVector<QPoint> getObjectPoints(int layer) { return list[layer].points; }
 	object getObject(int layer) { return list[layer]; }
+	QVector<object> getList() { return list; }
 	int objectSize(int layer) { return list[layer].points.size(); }
 	QPoint getObjectPoint(int layer, int index) { return list[layer].points.at(index); }
 	void changeObjectPoint(int layer, int index, QPoint point) { list[layer].points.replace(index, point); }
@@ -118,6 +121,7 @@ public:
 		list[layer].triangleColors[0] = TC[0]; list[layer].triangleColors[1] = TC[1]; list[layer].triangleColors[2] = TC[2];
 	}
 	void changeObjectColor(int layer, QColor color) { list[layer].color = color; }
+	void swapObjects(int layer1, int layer2);
 
 	void setMoveActive(bool state) { moveActive = state; }
 	bool getMoveActive() { return moveActive; }

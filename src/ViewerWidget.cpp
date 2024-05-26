@@ -277,6 +277,14 @@ int ViewerWidget::getClosestPointIndex(int layer, QPoint P) {
 
 	return n;
 }
+void ViewerWidget::swapObjects(int layer1, int layer2) {
+	list[layer1].layer = layer2;
+	list[layer2].layer = layer1;
+
+	std::sort(list.begin(), list.end(), [](const object& a, const object&b) {
+		return a.layer < b.layer;
+		});
+}
 
 void ViewerWidget::clear()
 {

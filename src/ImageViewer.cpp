@@ -150,7 +150,7 @@ void ImageViewer::ViewerWidgetMouseButtonPress(ViewerWidget* w, QEvent* event)
 				fill = (ui->checkBoxFill->isChecked() && temp.size() >= 3) ? true : false;
 				w->drawPolygon(temp, globalColor, fill, triangleColor, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 				type = types::polygon;
-				w->pushBackObject(temp, globalColor, ui->listWidgetLayers->count(), type, fill);
+				w->pushBackObject(temp, globalColor, ui->listWidgetLayers->count(), type, fill, triangleColor, ui->comboBoxFillType->currentIndex());
 				updateList("Polygon");
 			}
 			if (ui->toolButtonDrawCurved->isChecked()) {
@@ -328,6 +328,41 @@ bool ImageViewer::saveImage(QString filename)
 	return img->save(filename, extension.toStdString().c_str());
 }
 
+bool ImageViewer::saveState(QString filename) {
+	QVector<object> l = vW->getList();
+	if (l.isEmpty())
+		return false;
+
+	QFile file(filename);
+	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+		return false;
+	}
+
+	QTextStream out(&file);
+
+	for (object o : l) {
+		for (QPoint p : o.points) {
+			out << p.x() << " " << p.y() << " ";
+		}
+		out << " , ";
+		out << o.color.rgba() << " , ";
+		out << o.triangleColors[0].rgba() << " " << o.triangleColors[1].rgba() << " " << o.triangleColors[2].rgba() << " , ";
+		out << o.layer << " , ";
+		out << o.type << " , ";
+		out << o.curvedType << " , ";
+		out << o.fillType << " , ";
+		out << o.fill << "\n";
+	}
+
+	file.close();
+
+	return true;
+}
+bool ImageViewer::loadState(QString filename) {
+
+	return true;
+}
+
 //Slots
 void ImageViewer::on_actionOpen_triggered()
 {
@@ -443,6 +478,10 @@ void ImageViewer::on_pushButtonClear_clicked()
 			currentLayer--;
 	}
 	ui->listWidgetLayers->setCurrentRow(currentLayer);
+
+	programmaticChange = true;
+	ui->spinBoxLayer->setMaximum(ui->listWidgetLayers->count() - 1);
+	programmaticChange = false;
 
 	vW->clear();
 	vW->drawList();
@@ -707,6 +746,30 @@ void ImageViewer::on_pushButtonSave_clicked() {
 	}
 }
 
+void ImageViewer::on_pushButtonSaveState_clicked() {
+	QString folder = settings.value("folder_img_save_path", "").toString();
+
+	QString fileFilter = "Image viewer save state (*.ivss)";
+	QString fileName = QFileDialog::getSaveFileName(this, "Save state", folder, fileFilter);
+	if (!fileName.isEmpty()) {
+		QFileInfo fi(fileName);
+		settings.setValue("folder_img_save_path", fi.absoluteDir().absolutePath());
+
+		if (!saveState(fileName)) {
+			msgBox.setText("Unable to save state.");
+			msgBox.setIcon(QMessageBox::Warning);
+		}
+		else {
+			msgBox.setText(QString("File %1 saved.").arg(fileName));
+			msgBox.setIcon(QMessageBox::Information);
+		}
+		msgBox.exec();
+	}
+}
+void ImageViewer::on_pushButtonLoadState_clicked() {
+
+}
+
 void ImageViewer::on_listWidgetLayers_itemClicked(QListWidgetItem* item) {
 	int currentRow = ui->listWidgetLayers->row(item);
 	currentLayer = currentRow;
@@ -717,7 +780,9 @@ void ImageViewer::on_listWidgetLayers_itemClicked(QListWidgetItem* item) {
 	ui->pushButtonSetColor->setStyleSheet(style_sheet);
 
 	ui->radioButtonMove->setChecked(true);
+	programmaticChange = true;
 	ui->spinBoxLayer->setValue(o.layer);
+	programmaticChange = false;
 
 	switch (o.type) {
 	case(types::line):
@@ -757,8 +822,35 @@ void ImageViewer::updateList(QString item) {
 	currentLayer = ui->listWidgetLayers->count();
 	ui->listWidgetLayers->addItem(item);
 	ui->listWidgetLayers->setCurrentRow(currentLayer);
+	ui->spinBoxLayer->setMaximum(ui->listWidgetLayers->count() - 1);
+
+	programmaticChange = true;
+	ui->spinBoxLayer->setValue(currentLayer);
+	programmaticChange = false;
 }
 
 void ImageViewer::on_radioButtonMove_toggled(bool checked) {
 	vW->setMoveActive(checked);
+	ui->groupBoxDraw->setDisabled(checked);
+}
+
+void ImageViewer::on_spinBoxLayer_valueChanged(int value) {
+	if (!programmaticChange) {
+		int oldIndex = currentLayer;
+		int newIndex = value;
+
+		QListWidgetItem* item1 = ui->listWidgetLayers->item(oldIndex);
+		QListWidgetItem* item2 = ui->listWidgetLayers->item(newIndex);
+		QString temp = item1->text();
+
+		item1->setText(item2->text());
+		item2->setText(temp);
+
+		vW->swapObjects(oldIndex, newIndex);
+
+		currentLayer = newIndex;
+		ui->listWidgetLayers->setCurrentRow(currentLayer);
+
+		vW->drawList();
+	}
 }
