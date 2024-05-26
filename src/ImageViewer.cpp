@@ -386,6 +386,9 @@ bool ImageViewer::loadState(QString filename) {
 
 	file.close();
 
+	currentLayer = 0;
+	on_listWidgetLayers_itemClicked(ui->listWidgetLayers->item(currentLayer));
+
 	vW->clear();
 	vW->drawList();
 
