@@ -568,8 +568,8 @@ void ImageViewer::on_pushButtonScale_clicked() {
 		type = circle;
 	else if (ui->toolButtonDrawPolygon->isChecked())
 		type = polygon;
-
-	vW->scaleObject(ui->doubleSpinBoxScaleX->value(), ui->doubleSpinBoxScaleY->value(),globalColor, triangleColor, type, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
+	
+	vW->scaleObject(currentLayer, ui->doubleSpinBoxScaleX->value(), ui->doubleSpinBoxScaleY->value(),globalColor, triangleColor, type, ui->comboBoxLineAlg->currentIndex(), ui->comboBoxFillType->currentIndex());
 }
 void ImageViewer::on_pushButtonMirror_clicked() {
 	enum types { line, circle, polygon };
