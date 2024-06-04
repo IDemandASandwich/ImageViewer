@@ -191,44 +191,44 @@ void ViewerWidget::drawCircle(int layer, QPoint center, QPoint end, QColor color
 
 	while (x <= y) {
 		if (isInside(x1 + x, y1 + y))	
-			if (layer > L[x][y]) {
-				C[x][y] = color;
-				L[x][y] = layer;
+			if (layer > L[x1 + x][y1 + y]) {
+				C[x1 + x][y1 + y] = color;
+				L[x1 + x][y1 + y] = layer;
 			}
 		if (isInside(x1 + x, y1 - y))	
-			if (layer > L[x][y]) {
-				C[x][y] = color;
-				L[x][y] = layer;
+			if (layer > L[x1 + x][y1 - y]) {
+				C[x1 + x][y1 - y] = color;
+				L[x1 + x][y1 - y] = layer;
 			}
 		if (isInside(x1 - x, y1 + y))	
-			if (layer > L[x][y]) {
-				C[x][y] = color;
-				L[x][y] = layer;
+			if (layer > L[x1 - x][y1 + y]) {
+				C[x1 - x][y1 + y] = color;
+				L[x1 - x][y1 + y] = layer;
 			}
 		if (isInside(x1 - x, y1 - y))	
-			if (layer > L[x][y]) {
-				C[x][y] = color;
-				L[x][y] = layer;
+			if (layer > L[x1 - x][y1 - y]) {
+				C[x1 - x][y1 - y] = color;
+				L[x1 - x][y1 - y] = layer;
 			}
 		if (isInside(x1 + y, y1 + x))	
-			if (layer > L[x][y]) {
-				C[x][y] = color;
-				L[x][y] = layer;
+			if (layer > L[x1 + y][y1 + x]) {
+				C[x1 + y][y1 + x] = color;
+				L[x1 + y][y1 + x] = layer;
 			}
 		if (isInside(x1 + y, y1 - x))	
-			if (layer > L[x][y]) {
-				C[x][y] = color;
-				L[x][y] = layer;
+			if (layer > L[x1 + y][y1 - x]) {
+				C[x1 + y][y1 - x] = color;
+				L[x1 + y][y1 - x] = layer;
 			}
 		if (isInside(x1 - y, y1 + x))	
-			if (layer > L[x][y]) {
-				C[x][y] = color;
-				L[x][y] = layer;
+			if (layer > L[x1 - y][y1 + x]) {
+				C[x1 - y][y1 + x] = color;
+				L[x1 - y][y1 + x] = layer;
 			}
 		if (isInside(x1 - y, y1 - x))	
-			if (layer > L[x][y]) {
-				C[x][y] = color;
-				L[x][y] = layer;
+			if (layer > L[x1 - y][y1 - x]) {
+				C[x1 - y][y1 - x] = color;
+				L[x1 - y][y1 - x] = layer;
 			}
 
 		if (p > 0) {
